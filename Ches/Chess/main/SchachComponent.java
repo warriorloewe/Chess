@@ -26,8 +26,10 @@ public class SchachComponent extends JComponent {
 	Color attackableEnemie = new Color(255, 0, 0, 120);
 	Font time = new Font(Font.SERIF, 30, 80);
 	Font winner = new Font(Font.SERIF, 30, 90);
-	public SchachComponent(Rectangle _window, int _offsetX, int _offsetY) {
+	GameEnvironment ge;
+	public SchachComponent(Rectangle _window, int _offsetX, int _offsetY, GameEnvironment ge) {
 		super();
+		this.ge = ge;
 		this.window = _window;
 		this.offsetX = _offsetX;
 		this.offsetY = _offsetY;
@@ -79,7 +81,7 @@ public class SchachComponent extends JComponent {
 				g.setColor(Color.black);
 				g.drawString(map[i][j].name, offsetX + map[i][j].bounds.x + 2, offsetY + map[i][j].bounds.y + Spielfeld.width - 2);
 				if(map[i][j].figur != null) {
-					if(map[i][j].figur == GameEnvironment.selectedFigur && GameEnvironment.dragNDrop) {
+					if(map[i][j].figur == ge.selectedFigur && ge.dragNDrop) {
 					} else {
 						for(String str : sprite_names) {
 							if(str.contains(map[i][j].figur.name)) {
@@ -103,14 +105,14 @@ public class SchachComponent extends JComponent {
 				}
 			}
 		}
-		if(GameEnvironment.selectedField != null) {
+		if(ge.selectedField != null) {
 			g.setColor(selected);
-			g.fillOval(offsetX + GameEnvironment.selectedField.bounds.x + Spielfeld.width/4, offsetY + GameEnvironment.selectedField.bounds.y + Spielfeld.width/4, Spielfeld.width/2, Spielfeld.width/2);
+			g.fillOval(offsetX + ge.selectedField.bounds.x + Spielfeld.width/4, offsetY + ge.selectedField.bounds.y + Spielfeld.width/4, Spielfeld.width/2, Spielfeld.width/2);
 		}
-		if(GameEnvironment.selectedFigur != null && GameEnvironment.dragNDrop) {
+		if(ge.selectedFigur != null && ge.dragNDrop) {
 			for(String str : sprite_names) {
-				if(str.contains(GameEnvironment.selectedFigur.name)) {
-					g.drawImage(sprites.get(sprite_names.indexOf(str) + 1), GameEnvironment.mouseX - Spielfeld.width/2, GameEnvironment.mouseY - Spielfeld.width/2, Spielfeld.width, Spielfeld.width, null);
+				if(str.contains(ge.selectedFigur.name)) {
+					g.drawImage(sprites.get(sprite_names.indexOf(str) + 1), ge.mouseX - Spielfeld.width/2, ge.mouseY - Spielfeld.width/2, Spielfeld.width, Spielfeld.width, null);
 				}
 			}
 		}
@@ -119,13 +121,13 @@ public class SchachComponent extends JComponent {
 		g.setColor(Color.gray);
 		g.fillRect(20, window.height/2 - 20, 400, 40);
 		g.setFont(time);
-		g.drawString((int) GameEnvironment.timeLeftBlack/60 + " : " + GameEnvironment.timeLeftBlack % 60, 120, window.height/2 - 100);
-		g.drawString((int) GameEnvironment.timeLeftWhite/60 + " : " + GameEnvironment.timeLeftWhite % 60, 120, window.height/2 + 130);
-		if(GameEnvironment.gameOver) {
+		g.drawString((int) ge.timeLeftBlack/60 + " : " + ge.timeLeftBlack % 60, 120, window.height/2 - 100);
+		g.drawString((int) ge.timeLeftWhite/60 + " : " + ge.timeLeftWhite % 60, 120, window.height/2 + 130);
+		if(ge.gameOver) {
 			g.setColor(Color.gray);
 			g.fillRect(350, window.height/2 - 110, 1300, 200);
 			g.setColor(Color.black);
-			g.drawString("The game is over Player " + GameEnvironment.winner + " has won!", window.width/2 - 600, window.height/2);
+			g.drawString("The game is over Player " + ge.winner + " has won!", window.width/2 - 600, window.height/2);
 		}
 	}
 	protected void finalize() {

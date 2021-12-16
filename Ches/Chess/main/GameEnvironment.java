@@ -11,32 +11,32 @@ import java.util.ArrayList;
 public class GameEnvironment implements Runnable, MouseListener, MouseMotionListener {
 	
 	public int width = 8;
-	public static int timeLeftWhite;
-	public static int timeLeftBlack;
-	public static int mouseX = 0;
-	public static int mouseY = 0;
+	public int timeLeftWhite;
+	public int timeLeftBlack;
+	public int mouseX = 0;
+	public int mouseY = 0;
 	public int lastMouseX = 0;
 	public int lastMouseY = 0;
 	public int increment;
 	public boolean whitesMove = true;
-	public static boolean dragNDrop = false;
-	public static boolean gameOver = false;
+	public boolean dragNDrop = false;
+	public boolean gameOver = false;
 	public ArrayList<Figur> blackFigures;
 	public ArrayList<Figur> whiteFigures;
 	public Spielfeld[][] map;
-	public static Spielfeld selectedField;
-	public static Figur selectedFigur;
-	public static String winner;
+	public Spielfeld selectedField;
+	public Figur selectedFigur;
+	public String winner;
 	SchachComponent sc;
 	King black_king;
 	King white_king;
 	public GameEnvironment(SchachComponent _sc, int time, int increment, boolean dad) {
 		super();
 		this.sc = _sc;
-		GameEnvironment.timeLeftWhite = time;
-		GameEnvironment.timeLeftBlack = time;
+		this.timeLeftWhite = time;
+		this.timeLeftBlack = time;
 		this.increment = increment;
-		dragNDrop = dad;
+		this.dragNDrop = dad;
 		Spielfeld.width = 1000/width;
 		map = new Spielfeld[width][width];
 		for(int i = 0; i < width; i++) {
@@ -92,6 +92,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 	public boolean isLegal(Figur f, Spielfeld start, Spielfeld end) {
 		boolean legal = true;
 		boolean moved = f.moved;
+		boolean castle = false;
 		Figur endFigur = end.figur;
 		start.figur = null;
 		end.figur = f;
@@ -102,20 +103,22 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 			if(start.x - end.x == 2) {
 				map[f.y][f.x+1].figur = map[f.y][f.x-2].figur;
 				map[f.y][f.x-2].figur = null;
+				castle = true;
 			} else if(start.x - end.x == -2) {
-				map[f.y][f.x+1].figur = map[f.y][f.x-2].figur;
-				map[f.y][f.x-2].figur = null;
+				map[f.y][f.x-1].figur = map[f.y][f.x+2].figur;
+				map[f.y][f.x+2].figur = null;
+				castle = true;
 			}
 		}
 		if(f.color == "white") {
 			for(Figur ff : blackFigures) {
-				if(ff.canAttack(this.white_king)) {
+				if(ff.canAttack(this.white_king) && (ff.x != end.x || ff.y != end.y)) {
 					legal = false;
 				}
 			}
 		} else {
 			for(Figur ff : whiteFigures) {
-				if(ff.canAttack(this.black_king)) {
+				if(ff.canAttack(this.black_king) && (ff.x != end.x || ff.y != end.y)) {
 					legal = false;
 				}
 			}
@@ -125,6 +128,15 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		f.x = start.x;
 		f.y = start.y;
 		f.moved = moved;
+		if(castle) {
+			if(start.x - end.x == 2) {
+				map[f.y][f.x-2].figur = map[f.y][f.x+1].figur;
+				map[f.y][f.x+1].figur = null;
+			} else if(start.x - end.x == -2) {
+				map[f.y][f.x+2].figur = map[f.y][f.x-1].figur;
+				map[f.y][f.x-1].figur = null;
+			}
+		}
 		return legal;
 	}
 	

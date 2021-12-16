@@ -90,7 +90,7 @@ public class Window {
 					new SchachFrame(time, increment, mntmDragAndDrop.getSelection());
 				} catch(Exception ex) {
 					System.out.println("Invalid input!");
-					//ex.printStackTrace();
+					ex.printStackTrace();
 				}
 			}
 		});

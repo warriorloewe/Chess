@@ -21,10 +21,15 @@ public class SchachFrame extends JFrame {
 		super();
 		setBounds(window);
 		
-		sc = new SchachComponent(window, window.width/2 - 500, window.height/2 - 520);
+		sc = new SchachComponent(window, window.width/2 - 500, window.height/2 - 520, ge);
 		sc.setBounds(window);
 		sc.setVisible(true);
 		add(sc);
+		
+		ge = new GameEnvironment(sc, time, increment, dad);
+		sc.ge = ge;
+		addMouseListener(ge);
+		addMouseMotionListener(ge);
 		
 		JButton close = new JButton();
 		close.setBounds(window.width - 200, window.height - 200, 100, 50);
@@ -37,9 +42,6 @@ public class SchachFrame extends JFrame {
 		});
 		//add(close);
 		close.setVisible(true);
-		ge = new GameEnvironment(sc, time, increment, dad);
-		addMouseListener(ge);
-		addMouseMotionListener(ge);
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setVisible(true);
