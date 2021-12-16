@@ -1,6 +1,7 @@
 package main;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.io.File;
@@ -23,6 +24,8 @@ public class SchachComponent extends JComponent {
 	Color marked = new Color(10, 10, 10, 255);
 	Color attackableField = new Color(255, 0, 0, 255); // en passant
 	Color attackableEnemie = new Color(255, 0, 0, 120);
+	Font time = new Font(Font.SERIF, 30, 80);
+	Font winner = new Font(Font.SERIF, 30, 90);
 	public SchachComponent(Rectangle _window, int _offsetX, int _offsetY) {
 		super();
 		this.window = _window;
@@ -76,12 +79,16 @@ public class SchachComponent extends JComponent {
 				g.setColor(Color.black);
 				g.drawString(map[i][j].name, offsetX + map[i][j].bounds.x + 2, offsetY + map[i][j].bounds.y + Spielfeld.width - 2);
 				if(map[i][j].figur != null) {
-					for(String str : sprite_names) {
-						if(str.contains(map[i][j].figur.name)) {
-							g.drawImage(sprites.get(sprite_names.indexOf(str) + 1), offsetX + map[i][j].bounds.x, offsetY + map[i][j].bounds.y, Spielfeld.width, Spielfeld.width, null);
-							break;
+					if(map[i][j].figur == GameEnvironment.selectedFigur && GameEnvironment.dragNDrop) {
+					} else {
+						for(String str : sprite_names) {
+							if(str.contains(map[i][j].figur.name)) {
+								g.drawImage(sprites.get(sprite_names.indexOf(str) + 1), offsetX + map[i][j].bounds.x, offsetY + map[i][j].bounds.y, Spielfeld.width, Spielfeld.width, null);
+								break;
+							}
 						}
 					}
+					
 				}
 				if(map[i][j].marked) {
 					g.setColor(marked);
@@ -100,5 +107,28 @@ public class SchachComponent extends JComponent {
 			g.setColor(selected);
 			g.fillOval(offsetX + GameEnvironment.selectedField.bounds.x + Spielfeld.width/4, offsetY + GameEnvironment.selectedField.bounds.y + Spielfeld.width/4, Spielfeld.width/2, Spielfeld.width/2);
 		}
+		if(GameEnvironment.selectedFigur != null && GameEnvironment.dragNDrop) {
+			for(String str : sprite_names) {
+				if(str.contains(GameEnvironment.selectedFigur.name)) {
+					g.drawImage(sprites.get(sprite_names.indexOf(str) + 1), GameEnvironment.mouseX - Spielfeld.width/2, GameEnvironment.mouseY - Spielfeld.width/2, Spielfeld.width, Spielfeld.width, null);
+				}
+			}
+		}
+		g.setColor(Color.DARK_GRAY);
+		g.fillRect(20, window.height/2 - 200, 400, 400);
+		g.setColor(Color.gray);
+		g.fillRect(20, window.height/2 - 20, 400, 40);
+		g.setFont(time);
+		g.drawString((int) GameEnvironment.timeLeftBlack/60 + " : " + GameEnvironment.timeLeftBlack % 60, 120, window.height/2 - 100);
+		g.drawString((int) GameEnvironment.timeLeftWhite/60 + " : " + GameEnvironment.timeLeftWhite % 60, 120, window.height/2 + 130);
+		if(GameEnvironment.gameOver) {
+			g.setColor(Color.gray);
+			g.fillRect(350, window.height/2 - 110, 1300, 200);
+			g.setColor(Color.black);
+			g.drawString("The game is over Player " + GameEnvironment.winner + " has won!", window.width/2 - 600, window.height/2);
+		}
+	}
+	protected void finalize() {
+		System.out.println("object is garbage collected ");
 	}
 }

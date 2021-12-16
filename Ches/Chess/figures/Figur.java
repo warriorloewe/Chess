@@ -62,7 +62,9 @@ public abstract class Figur {
 		for(int i = 0; i < this.ge.map[0].length; i++) {
 			for(int j = 0; j < this.ge.map.length; j++) {
 				if(this.canReach(this.ge.map[i][j]) && this.ge.map[i][j].figur == null) {
-					reachableFields.add(this.ge.map[i][j]);
+					if(ge.isLegal(this, ge.map[this.y][this.x], ge.map[i][j])) {
+						reachableFields.add(this.ge.map[i][j]);
+					}
 				}
 			}
 		}
@@ -76,13 +78,17 @@ public abstract class Figur {
 		if(this.color == "white") {
 			for(Figur f : this.ge.blackFigures) {
 				if(canAttack(f)) {
-					reachableEnemies.add(f);
+					if(ge.isLegal(this, ge.map[this.y][this.x], ge.map[f.y][f.x])) {
+						reachableEnemies.add(f);
+					}
 				}
 			}
 		} else {
 			for(Figur f : this.ge.whiteFigures) {
 				if(canAttack(f)) {
-					reachableEnemies.add(f);
+					if(ge.isLegal(this, ge.map[this.y][this.x], ge.map[f.y][f.x])) {
+						reachableEnemies.add(f);
+					}
 				}
 			}
 		}
@@ -90,10 +96,31 @@ public abstract class Figur {
 	}
 	
 	public ArrayList<Spielfeld> checkForCastle() {
+		boolean longC = true;
+		boolean shortC = true;
+		if(this.color == "white") {
+			for(Figur f : this.ge.blackFigures) {
+				if(f.canReach(this.ge.map[this.y][this.x-1]) || f.canReach(this.ge.map[this.y][this.x-2])) {
+					longC = false;
+				}
+				if(f.canReach(this.ge.map[this.y][this.x+1]) || f.canReach(this.ge.map[this.y][this.x+2])) {
+					shortC = false;
+				}
+			}
+		} else {
+			for(Figur f : this.ge.whiteFigures) {
+				if(f.canReach(this.ge.map[this.y][this.x-1]) || f.canReach(this.ge.map[this.y][this.x-2])) {
+					longC = false;
+				}
+				if(f.canReach(this.ge.map[this.y][this.x+1]) || f.canReach(this.ge.map[this.y][this.x+2])) {
+					shortC = false;
+				}
+			}
+		}
 		ArrayList<Spielfeld> reachableFields = new ArrayList<Spielfeld>();
 		if(this.moved) return reachableFields;
-		else if(canCastleLong()) reachableFields.add(this.ge.map[this.y][this.x-2]);
-		else if(canCastleShort()) reachableFields.add(this.ge.map[this.y][this.x+2]);
+		else if(canCastleLong() && longC) reachableFields.add(this.ge.map[this.y][this.x-2]);
+		else if(canCastleShort() && shortC) reachableFields.add(this.ge.map[this.y][this.x+2]);
 		return reachableFields;
 	}
 	

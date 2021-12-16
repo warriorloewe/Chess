@@ -14,8 +14,8 @@ import org.eclipse.swt.events.MouseEvent;
 public class Window {
 
 	protected Shell shlChess;
-	private Text text;
-	private Text text_1;
+	private Text txt_time;
+	private Text txt_increment;
 
 	/**
 	 * Launch the application.
@@ -54,18 +54,18 @@ public class Window {
 		shlChess.setText("Chess");
 		
 		Label lblTime = new Label(shlChess, SWT.NONE);
-		lblTime.setBounds(266, 62, 55, 15);
+		lblTime.setBounds(266, 62, 29, 15);
 		lblTime.setText("Time:");
 		
 		Label lblIncrement = new Label(shlChess, SWT.NONE);
-		lblIncrement.setBounds(251, 95, 70, 15);
+		lblIncrement.setBounds(238, 95, 57, 15);
 		lblIncrement.setText("Increment:");
 		
-		text = new Text(shlChess, SWT.BORDER);
-		text.setBounds(351, 62, 76, 21);
+		txt_time = new Text(shlChess, SWT.BORDER);
+		txt_time.setBounds(310, 59, 76, 21);
 		
-		text_1 = new Text(shlChess, SWT.BORDER);
-		text_1.setBounds(361, 89, 76, 21);
+		txt_increment = new Text(shlChess, SWT.BORDER);
+		txt_increment.setBounds(310, 92, 76, 21);
 		
 		Menu menu = new Menu(shlChess, SWT.BAR);
 		shlChess.setMenuBar(menu);
@@ -83,11 +83,29 @@ public class Window {
 		btnStartGame.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseDown(MouseEvent e) {
-				new SchachFrame();
+				try {
+					int time = Integer.valueOf(txt_time.getText());
+					int increment = Integer.valueOf(txt_increment.getText());
+					System.out.println(mntmDragAndDrop.getSelection());
+					new SchachFrame(time, increment, mntmDragAndDrop.getSelection());
+				} catch(Exception ex) {
+					System.out.println("Invalid input!");
+					//ex.printStackTrace();
+				}
 			}
 		});
-		btnStartGame.setBounds(310, 201, 75, 25);
+		btnStartGame.setBounds(310, 153, 75, 25);
 		btnStartGame.setText("Start Game");
+		
+		Button btnExit = new Button(shlChess, SWT.NONE);
+		btnExit.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseDown(MouseEvent e) {
+				System.exit(0);
+			}
+		});
+		btnExit.setBounds(311, 193, 75, 25);
+		btnExit.setText("Exit");
 
 	}
 }
