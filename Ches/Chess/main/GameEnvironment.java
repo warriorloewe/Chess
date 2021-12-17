@@ -167,11 +167,16 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 			if(start.x - end.x == 2) {
 				map[f.y][f.x+1].figur = map[f.y][f.x-2].figur;
 				map[f.y][f.x-2].figur = null;
+				map[f.y][f.x+1].figur.x = f.x+1;
+				map[f.y][f.x+1].figur.moved = true;
 			} else if(start.x - end.x == -2) {
 				map[f.y][f.x-1].figur = map[f.y][f.x+1].figur;
 				map[f.y][f.x+1].figur = null;
+				map[f.y][f.x-1].figur.x = f.x-1;
+				map[f.y][f.x-1].figur.moved = true;
 			}
 		}
+		checkForMate();
 		whitesMove = !whitesMove;
 	}
 	
@@ -182,16 +187,12 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 			} else {
 				map[end.y-1][end.x].figur = null;
 			}
-		} else if(end.figur.name.contains("king")) {
-			gameOver = true;
-			winner = f.color;
 		}
 		if(f.color == "white") {
 			blackFigures.remove(end.figur);
 		} else {
 			whiteFigures.remove(end.figur);
 		}
-		whitesMove = !whitesMove;
 		start.figur = null;
 		end.figur = f;
 		f.x = end.x;
@@ -201,6 +202,8 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		f.moved = true;
 		updateMarkers();
 		updateEnPassant();
+		checkForMate();
+		whitesMove = !whitesMove;
 	}
 	
 	public void updateEnPassant() {
@@ -233,6 +236,42 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 					}
 				} else {
 					map[f.y][f.x].attackable = true;
+				}
+			}
+		}
+	}
+	
+	public void checkForMate() {
+		if(whitesMove) {
+			for(Figur f : whiteFigures) {
+				if(f.canAttack(black_king)) {
+					if(black_king.getReachableFields().size() > 0) {
+						return;
+					}
+					for(Figur ff : blackFigures) {
+						if(ff.getReachableEnemies().size() > 0 || ff.getReachableFields().size() > 0) {
+							return;
+						}
+					}
+					gameOver = true;
+					winner = "white";
+					return;
+				}
+			}
+		} else {
+			for(Figur f : blackFigures) {
+				if(f.canAttack(black_king)) {
+					if(black_king.getReachableFields().size() > 0) {
+						return;
+					}
+					for(Figur ff : whiteFigures) {
+						if(ff.getReachableEnemies().size() > 0 || ff.getReachableFields().size() > 0) {
+							return;
+						}
+					}
+					gameOver = true;
+					winner = "black";
+					return;
 				}
 			}
 		}

@@ -86,7 +86,6 @@ public class Window {
 				try {
 					int time = Integer.valueOf(txt_time.getText());
 					int increment = Integer.valueOf(txt_increment.getText());
-					System.out.println(mntmDragAndDrop.getSelection());
 					new SchachFrame(time, increment, mntmDragAndDrop.getSelection());
 				} catch(Exception ex) {
 					System.out.println("Invalid input!");
