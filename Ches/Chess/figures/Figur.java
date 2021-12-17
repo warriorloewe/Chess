@@ -12,6 +12,7 @@ public abstract class Figur {
 	public int x;
 	public int y;
 	public boolean moved = false;
+	public boolean isLongRange = false;
 	public int[][] directions = {{-1, -1}, {1, -1}, {-1, 1}, {1, 1}, {0, 1}, {0, -1}, {1, 0}, {-1, 0}};
 	public Figur(int _x, int _y, String _color, String _name, GameEnvironment _ge) {
 		this.x = _x;
@@ -29,7 +30,7 @@ public abstract class Figur {
 			if(xx < 0 || xx > 7 || yy < 0 || yy > 7) {
 				return reachableFields;
 			}
-			if(this.ge.map[yy][xx].figur == null) {
+			if(this.ge.map[yy][xx].figur == null && this.ge.isLegal(this, this.ge.map[this.y][this.x], this.ge.map[yy][xx])) {
 				reachableFields.add(this.ge.map[yy][xx]);
 				xx += xDirection;
 				yy += yDirection;
@@ -51,11 +52,31 @@ public abstract class Figur {
 				yy += yDirection;
 			} else if (this.ge.map[yy][xx].figur.color == this.color){
 				return null;
-			} else {
+			} else if(this.ge.isLegal(this, this.ge.map[this.y][this.x], this.ge.map[yy][xx])){
 				return this.ge.map[yy][xx].figur;
 			}
 		}
 	}
+	
+	public boolean checkAttackableKing(int xDirection, int yDirection) {
+		int xx = this.x + xDirection;
+		int yy = this.y + yDirection;
+		while(true) {
+			if(xx < 0 || xx > 7 || yy < 0 || yy > 7) {
+				return false;
+			} else if(this.ge.map[yy][xx].figur == null) {
+				xx += xDirection;
+				yy += yDirection;
+			} else if (this.ge.map[yy][xx].figur.color == this.color){
+				return false;
+			} else if (this.ge.map[yy][xx].figur.name.contains("king")) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+	
 	
 	public ArrayList<Spielfeld> getReachableFields() {
 		ArrayList<Spielfeld> reachableFields = new ArrayList<Spielfeld>();
@@ -152,5 +173,6 @@ public abstract class Figur {
 		return false;
 	}
 	public abstract boolean canAttack(Figur f);
+	public abstract boolean canAttackKing(Figur f);
 	public abstract boolean canReach(Spielfeld sf);
 }

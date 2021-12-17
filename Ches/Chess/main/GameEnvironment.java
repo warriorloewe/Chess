@@ -112,13 +112,22 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		}
 		if(f.color == "white") {
 			for(Figur ff : blackFigures) {
-				if(ff.canAttack(this.white_king) && (ff.x != end.x || ff.y != end.y)) {
+				if(ff.isLongRange) {
+					if(ff.canAttackKing(this.white_king) && (ff.x != end.x || ff.y != end.y)) {
+						legal = false;
+					}
+				} else if(ff.canAttack(this.white_king) && (ff.x != end.x || ff.y != end.y)) {
 					legal = false;
 				}
 			}
 		} else {
 			for(Figur ff : whiteFigures) {
-				if(ff.canAttack(this.black_king) && (ff.x != end.x || ff.y != end.y)) {
+				if(ff.isLongRange) {
+					System.out.println(f.name);
+					if(ff.canAttackKing(this.black_king) && (ff.x != end.x || ff.y != end.y)) {
+						legal = false;
+					}
+				} else if(ff.canAttack(this.black_king) && (ff.x != end.x || ff.y != end.y)) {
 					legal = false;
 				}
 			}

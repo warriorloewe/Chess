@@ -48,5 +48,10 @@ public class Pawn extends Figur{
 			return Math.abs(f.x - this.x) == 1 && this.y - f.y == 1;
 		}
 	}
+	
+	@Override
+	public boolean canAttackKing(Figur f) {
+		return true;
+	}
 }
 

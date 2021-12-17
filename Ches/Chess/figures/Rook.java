@@ -7,6 +7,7 @@ public class Rook extends Figur{
 
 	public Rook(int _x, int _y, String _color, GameEnvironment ge) {
 		super(_x, _y, _color, _color + "_rook", ge);
+		this.isLongRange = true;
 	}
 
 	public void move() {
@@ -45,5 +46,15 @@ public class Rook extends Figur{
 	@Override
 	public boolean canAttack(Figur f) {
 		return getReachableEnemies().contains(f);
+	}
+	
+	@Override
+	public boolean canAttackKing(Figur f) {
+		for(int i = 4; i < 8; i++) {
+			if(this.checkAttackableKing(this.directions[i][0], this.directions[i][1])) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

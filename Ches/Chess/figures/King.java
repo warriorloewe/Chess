@@ -21,4 +21,9 @@ public class King extends Figur{
 	public boolean canAttack(Figur f) {
 		return Math.abs(this.x - f.x) <= 1 && Math.abs(this.y - f.y) <= 1;
 	}
+	
+	@Override
+	public boolean canAttackKing(Figur f) {
+		return true;
+	}
 }
