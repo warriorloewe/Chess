@@ -6,14 +6,17 @@ import main.GameEnvironment;
 import main.Spielfeld;
 
 public abstract class Figur {
+	
+	public int x;
+	public int y;
+	public int[][] directions = {{-1, -1}, {1, -1}, {-1, 1}, {1, 1}, {0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+	public boolean moved = false;
+	public boolean isLongRange = false;
+	public boolean enPassant = false;
 	public String color;
 	public String name;
 	public GameEnvironment ge;
-	public int x;
-	public int y;
-	public boolean moved = false;
-	public boolean isLongRange = false;
-	public int[][] directions = {{-1, -1}, {1, -1}, {-1, 1}, {1, 1}, {0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+	
 	public Figur(int _x, int _y, String _color, String _name, GameEnvironment _ge) {
 		this.x = _x;
 		this.y = _y;
@@ -22,44 +25,39 @@ public abstract class Figur {
 		this.ge = _ge;
 	}
 	
+	public abstract boolean canAttack(Figur f);
+	public abstract boolean canAttackKing(Figur f);
+	public abstract boolean canReach(Spielfeld sf);
+	
 	public ArrayList<Spielfeld> checkDirection(int xDirection, int yDirection) {
 		int xx = this.x + xDirection;
 		int yy = this.y + yDirection;
 		ArrayList<Spielfeld> reachableFields = new ArrayList<Spielfeld>();
-		while(true) {
-			if(xx < 0 || xx > 7 || yy < 0 || yy > 7) {
+		while(!(xx < 0 || xx > 7 || yy < 0 || yy > 7)) {
+			if(this.ge.map[yy][xx].figur == null) {
+				if(this.ge.isLegal(this, this.ge.map[this.y][this.x], this.ge.map[yy][xx])) {
+					reachableFields.add(this.ge.map[yy][xx]);
+				}
+			} else {
 				return reachableFields;
 			}
-			if(this.ge.map[yy][xx].figur == null && this.ge.isLegal(this, this.ge.map[this.y][this.x], this.ge.map[yy][xx])) {
-				reachableFields.add(this.ge.map[yy][xx]);
-				xx += xDirection;
-				yy += yDirection;
-				
-			} else if (!(this.ge.isLegal(this, this.ge.map[this.y][this.x], this.ge.map[yy][xx]))) {
-				xx += xDirection;
-				yy += yDirection;
-			}
-			else {
-				return reachableFields;
-			}
+			xx += xDirection;
+			yy += yDirection;
 		}
+		return reachableFields;
 	}
 	
 	public Figur checkAttackable(int xDirection, int yDirection) {
 		int xx = this.x + xDirection;
 		int yy = this.y + yDirection;
-		while(true) {
-			if(xx < 0 || xx > 7 || yy < 0 || yy > 7) {
-				return null;
-			} else if(this.ge.map[yy][xx].figur == null) {
-				xx += xDirection;
-				yy += yDirection;
-			} else if (this.ge.map[yy][xx].figur.color == this.color){
-				return null;
-			} else if(this.ge.isLegal(this, this.ge.map[this.y][this.x], this.ge.map[yy][xx])){
-				return this.ge.map[yy][xx].figur;
+		while(!(xx < 0 || xx > 7 || yy < 0 || yy > 7)) {
+			if(this.ge.map[yy][xx].figur != null) {
+				return this.ge.map[yy][xx].figur.color == this.color || !this.ge.isLegal(this, this.ge.map[this.y][this.x], this.ge.map[yy][xx]) ? null : this.ge.map[yy][xx].figur;
 			}
+			xx += xDirection;
+			yy += yDirection;
 		}
+		return null;
 	}
 	
 	public boolean checkAttackableKing(int xDirection, int yDirection) {
@@ -115,6 +113,8 @@ public abstract class Figur {
 	}
 	
 	public ArrayList<Spielfeld> checkForCastle() {
+		ArrayList<Spielfeld> reachableFields = new ArrayList<Spielfeld>();
+		if(this.moved) return reachableFields;
 		boolean longC = true;
 		boolean shortC = true;
 		if(this.color == "white") {
@@ -136,41 +136,30 @@ public abstract class Figur {
 				}
 			}
 		}
-		ArrayList<Spielfeld> reachableFields = new ArrayList<Spielfeld>();
-		if(this.moved) return reachableFields;
-		else if(canCastleLong() && longC) reachableFields.add(this.ge.map[this.y][this.x-2]);
+		if(canCastleLong() && longC) reachableFields.add(this.ge.map[this.y][this.x-2]);
 		else if(canCastleShort() && shortC) reachableFields.add(this.ge.map[this.y][this.x+2]);
 		return reachableFields;
 	}
 	
 	public boolean canCastleLong() {
-		if(!(this.ge.map[this.y][this.x-1].figur == null && this.ge.map[this.y][this.x-2].figur == null && this.ge.map[this.y][this.x-3].figur == null)) {
-			return false;
-		}
+		boolean rook = false;
 		Spielfeld f = this.ge.map[this.y][this.x-4];
 		if(f.figur != null) {
-			if(!(f.figur.name.contains(this.color + "_rook") && !f.figur.moved)) {
-				return false;
+			if(f.figur.name.contains(this.color + "_rook") && !f.figur.moved) {
+				rook = true;
 			}
-			return true;
 		}
-		return false;
+		return rook && this.ge.map[this.y][this.x-1].figur == null && this.ge.map[this.y][this.x-2].figur == null && this.ge.map[this.y][this.x-3].figur == null;
 	}
 	
 	public boolean canCastleShort() {
-		if(!(this.ge.map[this.y][this.x+1].figur == null && this.ge.map[this.y][this.x+2].figur == null)) {
-			return false;
-		}
+		boolean rook = false;
 		Spielfeld f = this.ge.map[this.y][this.x+3];
 		if(f.figur != null) {
-			if(!(f.figur.name.contains(this.color + "_rook") && !f.figur.moved)) {
-				return false;
+			if(f.figur.name.contains(this.color + "_rook") && !f.figur.moved) {
+				rook = true;
 			}
-			return true;
 		}
-		return false;
+		return rook && this.ge.map[this.y][this.x+1].figur == null && this.ge.map[this.y][this.x+2].figur == null;
 	}
-	public abstract boolean canAttack(Figur f);
-	public abstract boolean canAttackKing(Figur f);
-	public abstract boolean canReach(Spielfeld sf);
 }

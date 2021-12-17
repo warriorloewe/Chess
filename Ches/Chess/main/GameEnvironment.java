@@ -26,12 +26,12 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 	public Spielfeld[][] map;
 	public Spielfeld selectedField;
 	public Figur selectedFigur;
+	public King black_king;
+	public King white_king;
 	public String winner;
-	SchachComponent sc;
-	King black_king;
-	King white_king;
+	public SchachComponent sc;
+	
 	public GameEnvironment(SchachComponent _sc, int time, int increment, boolean dad) {
-		super();
 		this.sc = _sc;
 		this.timeLeftWhite = time;
 		this.timeLeftBlack = time;
@@ -41,7 +41,6 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		map = new Spielfeld[width][width];
 		for(int i = 0; i < width; i++) {
 			for(int j = 0; j < width; j++) {
-				// a - h = 97 - 104
 				String name = (char) (97 + j) + String.valueOf(8 - i);
 				map[i][j] = new Spielfeld(j, i, null, new Rectangle(j * Spielfeld.width, i * Spielfeld.width, Spielfeld.width, Spielfeld.width), name);
 			}
@@ -55,8 +54,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		map[7][1].figur = new Knight(1, 7, "white", this);
 		map[7][2].figur = new Bishop(2, 7, "white", this);
 		map[7][3].figur = new Queen(3, 7, "white", this);
-		white_king = new King(4, 7, "white", this);
-		map[7][4].figur = white_king;
+		map[7][4].figur = new King(4, 7, "white", this);
 		map[7][5].figur = new Bishop(5, 7, "white", this);
 		map[7][6].figur = new Knight(6, 7, "white", this);
 		map[7][7].figur = new Rook(7, 7, "white", this);
@@ -65,11 +63,13 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		map[0][1].figur = new Knight(1, 0, "black", this);
 		map[0][2].figur = new Bishop(2, 0, "black", this);
 		map[0][3].figur = new Queen(3, 0, "black", this);
-		black_king = new King(4, 0, "black", this);
-		map[0][4].figur = black_king;
+		map[0][4].figur = new King(4, 0, "black", this);
 		map[0][5].figur = new Bishop(5, 0, "black", this);
 		map[0][6].figur = new Knight(6, 0, "black", this);
 		map[0][7].figur = new Rook(7, 0, "black", this);		
+		
+		white_king = (King) map[7][4].figur;
+		black_king = (King) map[0][4].figur;
 		
 		sc.map = map;
 		whiteFigures = new ArrayList<Figur>();
@@ -205,16 +205,10 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 	
 	public void updateEnPassant() {
 		for(Figur f : whiteFigures) {
-			if(f.name.contains("pawn")) {
-				Pawn ff = (Pawn) f;
-				ff.enPassant = false;
-			}
+			f.enPassant = false;
 		}
 		for(Figur f : blackFigures) {
-			if(f.name.contains("pawn")) {
-				Pawn ff = (Pawn) f;
-				ff.enPassant = false;
-			}
+			f.enPassant = false;
 		}
 	}
 	
@@ -225,23 +219,17 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 				map[i][j].attackable = false;
 			}
 		}
-		if(selectedFigur == null) {
-			return;
-		} else {
+		if(selectedFigur == null) return;
+		else {
 			for(Spielfeld sf : selectedFigur.getReachableFields()) {
 				sf.marked = true;
 			}
 			for(Figur f : selectedFigur.getReachableEnemies()) {
-				if(f.name.contains("pawn") && selectedFigur.name.contains("pawn")) {
-					Pawn ff = (Pawn) f;
-					if(selectedFigur.y - f.y == 0 && ff.enPassant) {
-						if(selectedFigur.color == "white") {
-							map[f.y-1][f.x].attackable = true;
-						} else {
-							map[f.y+1][f.x].attackable = true;
-						}
+				if(f.name.contains("pawn") && selectedFigur.name.contains("pawn") && selectedFigur.y - f.y == 0 && f.enPassant) {
+					if(selectedFigur.color == "white") {
+						map[f.y-1][f.x].attackable = true;
 					} else {
-						map[f.y][f.x].attackable = true;
+						map[f.y+1][f.x].attackable = true;
 					}
 				} else {
 					map[f.y][f.x].attackable = true;
@@ -256,7 +244,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		int time = 0;
 		while(true) {
 			sc.repaint();
-			if(timer.getTime() > time && !gameOver) {
+			if(timer.time > time && !gameOver) {
 				time++;
 				if(whitesMove) {
 					timeLeftWhite--;
@@ -289,23 +277,23 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 			for(int j = 0; j < map.length; j++) {
 				if(map[i][j].bounds.contains(p)) {
 					if(dragNDrop) {
-						if(map[i][j].figur == null) return;
-						boolean rightMove = (whitesMove && map[i][j].figur.color == "white") || (!whitesMove && map[i][j].figur.color == "black");
-						if(rightMove) {
-							selectedFigur = map[i][j].figur;
-							selectedField = map[i][j];
-							updateMarkers();
-							mouseX = lastMouseX;
-							mouseY = lastMouseY;
+						if(map[i][j].figur != null) {
+							if(whitesMove && map[i][j].figur.color == "white" || (!whitesMove && map[i][j].figur.color == "black")) {
+								selectedFigur = map[i][j].figur;
+								selectedField = map[i][j];
+								mouseX = lastMouseX;
+								mouseY = lastMouseY;
+								updateMarkers();
+							}
 						}
+						return;
 					} else {
 						if(map[i][j].marked) {
 							move(selectedFigur, selectedField, map[i][j]);
 						} else if(map[i][j].attackable) {
 							take(selectedFigur, selectedField, map[i][j]);
 						} else if(map[i][j].figur != null) {
-							boolean rightMove = (whitesMove && map[i][j].figur.color == "white") || (!whitesMove && map[i][j].figur.color == "black");
-							if(selectedField != map[i][j] && rightMove) {
+							if(selectedField != map[i][j] && (whitesMove && map[i][j].figur.color == "white") || (!whitesMove && map[i][j].figur.color == "black")) {
 								selectedField = map[i][j];
 								selectedFigur = map[i][j].figur;
 							} else {
@@ -343,7 +331,6 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		updateMarkers();
 	}
 	
-
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		mouseX = e.getX();

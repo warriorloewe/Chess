@@ -1,25 +1,22 @@
 package figures;
-import java.util.ArrayList;
 
+import java.util.ArrayList;
 import main.GameEnvironment;
 import main.Spielfeld;
-public class Bishop extends Figur{
+
+public class Bishop extends Figur {
 
 	public Bishop(int _x, int _y, String _color, GameEnvironment ge) {
 		super(_x, _y, _color, _color + "_bishop", ge);
 		this.isLongRange = true;
 	}
-
-	public void move() {
-		
-	}
-
+	
 	@Override
 	public ArrayList<Spielfeld> getReachableFields() {
-		ArrayList<Spielfeld> reachableFields = this.checkDirection(-1, -1);
-		reachableFields.addAll(this.checkDirection(1, -1));
-		reachableFields.addAll(this.checkDirection(-1, 1));
-		reachableFields.addAll(this.checkDirection(1, 1));
+		ArrayList<Spielfeld> reachableFields =  new ArrayList<Spielfeld>();
+		for(int i = 0; i < 4; i++) {
+			reachableFields.addAll(this.checkDirection(this.directions[i][0], this.directions[i][1]));
+		}
 		return reachableFields;
 	}
 	
@@ -36,8 +33,7 @@ public class Bishop extends Figur{
 		}
 		return attackableFigures;
 	}
-	
-	
+
 	@Override
 	public boolean canReach(Spielfeld sf) {
 		return getReachableFields().contains(sf);

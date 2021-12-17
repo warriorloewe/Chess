@@ -33,24 +33,6 @@ public class SchachComponent extends JComponent {
 		this.window = _window;
 		this.offsetX = _offsetX;
 		this.offsetY = _offsetY;
-		sprites = new ArrayList<BufferedImage>();
-		try {
-			sprites.add(ImageIO.read(new File("Chess/rsc/background.jpg")));
-			sprites.add(ImageIO.read(new File("Chess/rsc/white_king.png")));
-			sprites.add(ImageIO.read(new File("Chess/rsc/black_king.png")));
-			sprites.add(ImageIO.read(new File("Chess/rsc/white_queen.png")));
-			sprites.add(ImageIO.read(new File("Chess/rsc/black_queen.png")));
-			sprites.add(ImageIO.read(new File("Chess/rsc/white_pawn.png")));
-			sprites.add(ImageIO.read(new File("Chess/rsc/black_pawn.png")));
-			sprites.add(ImageIO.read(new File("Chess/rsc/white_rook.png")));
-			sprites.add(ImageIO.read(new File("Chess/rsc/black_rook.png")));
-			sprites.add(ImageIO.read(new File("Chess/rsc/white_knight.png")));
-			sprites.add(ImageIO.read(new File("Chess/rsc/black_knight.png")));
-			sprites.add(ImageIO.read(new File("Chess/rsc/white_bishop.png")));
-			sprites.add(ImageIO.read(new File("Chess/rsc/black_bishop.png")));
-		} catch (IOException e) {
-			e.printStackTrace();
-		} 
 		sprite_names = new ArrayList<String>();
 		sprite_names.add("white_king");
 		sprite_names.add("black_king");
@@ -64,6 +46,15 @@ public class SchachComponent extends JComponent {
 		sprite_names.add("black_knight");
 		sprite_names.add("white_bishop");
 		sprite_names.add("black_bishop");
+		sprites = new ArrayList<BufferedImage>();
+		try {
+			sprites.add(ImageIO.read(new File("Chess/rsc/background.jpg")));
+			for(String s : sprite_names) {
+				sprites.add(ImageIO.read(new File("Chess/rsc/" + s + ".png")));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} 
 	}
 	
 	@Override
