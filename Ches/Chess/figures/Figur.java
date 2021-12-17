@@ -35,7 +35,11 @@ public abstract class Figur {
 				xx += xDirection;
 				yy += yDirection;
 				
-			} else {
+			} else if (!(this.ge.isLegal(this, this.ge.map[this.y][this.x], this.ge.map[yy][xx]))) {
+				xx += xDirection;
+				yy += yDirection;
+			}
+			else {
 				return reachableFields;
 			}
 		}
@@ -61,20 +65,14 @@ public abstract class Figur {
 	public boolean checkAttackableKing(int xDirection, int yDirection) {
 		int xx = this.x + xDirection;
 		int yy = this.y + yDirection;
-		while(true) {
-			if(xx < 0 || xx > 7 || yy < 0 || yy > 7) {
-				return false;
-			} else if(this.ge.map[yy][xx].figur == null) {
-				xx += xDirection;
-				yy += yDirection;
-			} else if (this.ge.map[yy][xx].figur.color == this.color){
-				return false;
-			} else if (this.ge.map[yy][xx].figur.name.contains("king")) {
-				return true;
-			} else {
-				return false;
+		while(!(xx < 0 || xx > 7 || yy < 0 || yy > 7)) {
+			if(this.ge.map[yy][xx].figur != null) {
+				return !(this.ge.map[yy][xx].figur.color == this.color || !this.ge.map[yy][xx].figur.name.contains("king"));
 			}
+			xx += xDirection;
+			yy += yDirection;
 		}
+		return false;
 	}
 	
 	

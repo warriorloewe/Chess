@@ -101,12 +101,12 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		f.moved = true;
 		if(f.name.contains("king")) {
 			if(start.x - end.x == 2) {
-				map[f.y][f.x+1].figur = map[f.y][f.x-2].figur;
-				map[f.y][f.x-2].figur = null;
+				map[f.y][f.x+1].figur = map[f.y][f.x-4].figur;
+				map[f.y][f.x-4].figur = null;
 				castle = true;
 			} else if(start.x - end.x == -2) {
-				map[f.y][f.x-1].figur = map[f.y][f.x+2].figur;
-				map[f.y][f.x+2].figur = null;
+				map[f.y][f.x-1].figur = map[f.y][f.x+3].figur;
+				map[f.y][f.x+3].figur = null;
 				castle = true;
 			}
 		}
@@ -123,7 +123,6 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		} else {
 			for(Figur ff : whiteFigures) {
 				if(ff.isLongRange) {
-					System.out.println(f.name);
 					if(ff.canAttackKing(this.black_king) && (ff.x != end.x || ff.y != end.y)) {
 						legal = false;
 					}
@@ -142,7 +141,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 				map[f.y][f.x-2].figur = map[f.y][f.x+1].figur;
 				map[f.y][f.x+1].figur = null;
 			} else if(start.x - end.x == -2) {
-				map[f.y][f.x+2].figur = map[f.y][f.x-1].figur;
+				map[f.y][f.x+1].figur = map[f.y][f.x-1].figur;
 				map[f.y][f.x-1].figur = null;
 			}
 		}
@@ -168,11 +167,9 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 			if(start.x - end.x == 2) {
 				map[f.y][f.x+1].figur = map[f.y][f.x-2].figur;
 				map[f.y][f.x-2].figur = null;
-				return;
 			} else if(start.x - end.x == -2) {
-				map[f.y][f.x+1].figur = map[f.y][f.x-2].figur;
-				map[f.y][f.x-2].figur = null;
-				return;
+				map[f.y][f.x-1].figur = map[f.y][f.x+1].figur;
+				map[f.y][f.x+1].figur = null;
 			}
 		}
 		whitesMove = !whitesMove;
