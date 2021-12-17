@@ -25,7 +25,7 @@ public class SchachComponent extends JComponent {
 	Color attackableField = new Color(255, 0, 0, 255); // en passant
 	Color attackableEnemie = new Color(255, 0, 0, 120);
 	Font time = new Font(Font.SERIF, 30, 80);
-	Font winner = new Font(Font.SERIF, 30, 90);
+	Font winner = new Font(Font.SERIF, 30, 75);
 	GameEnvironment ge;
 	public SchachComponent(Rectangle _window, int _offsetX, int _offsetY, GameEnvironment ge) {
 		super();
@@ -115,10 +115,11 @@ public class SchachComponent extends JComponent {
 		g.drawString((int) ge.timeLeftBlack/60 + " : " + ge.timeLeftBlack % 60, 120, window.height/2 - 100);
 		g.drawString((int) ge.timeLeftWhite/60 + " : " + ge.timeLeftWhite % 60, 120, window.height/2 + 130);
 		if(ge.gameOver) {
-			g.setColor(Color.gray);
-			g.fillRect(350, window.height/2 - 110, 1300, 200);
 			g.setColor(Color.black);
-			g.drawString("The game is over Player " + ge.winner + " has won!", window.width/2 - 600, window.height/2);
+			g.fillRect(140, window.height/2 - 120, window.width - 280, 220);
+			g.drawImage(sprites.get(0), 150, window.height/2 - 110, window.width - 300, 200, null);
+			g.setColor(Color.black);
+			g.drawString("Player " + ge.winner + " has won because " + ge.winningReason, window.width/2 - 750, window.height/2);
 		}
 	}
 	protected void finalize() {

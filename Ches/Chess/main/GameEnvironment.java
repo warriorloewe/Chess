@@ -29,6 +29,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 	public King black_king;
 	public King white_king;
 	public String winner;
+	public String winningReason;
 	public SchachComponent sc;
 	
 	public GameEnvironment(SchachComponent _sc, int time, int increment, boolean dad) {
@@ -255,13 +256,14 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 					}
 					gameOver = true;
 					winner = "white";
+					winningReason = "of Check Mate";
 					return;
 				}
 			}
 		} else {
 			for(Figur f : blackFigures) {
-				if(f.canAttack(black_king)) {
-					if(black_king.getReachableFields().size() > 0) {
+				if(f.canAttack(white_king)) {
+					if(white_king.getReachableFields().size() > 0) {
 						return;
 					}
 					for(Figur ff : whiteFigures) {
@@ -271,6 +273,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 					}
 					gameOver = true;
 					winner = "black";
+					winningReason = "of Check Mate";
 					return;
 				}
 			}
@@ -290,6 +293,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 					if(timeLeftWhite <= 0) {
 						gameOver = true;
 						winner = "black";
+						winningReason = "time ran out";
 					}
 				}
 				else {
@@ -297,6 +301,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 					if(timeLeftBlack <= 0) {
 						gameOver = true;
 						winner = "white";
+						winningReason = "time ran out";
 					}
 				}
 			}
