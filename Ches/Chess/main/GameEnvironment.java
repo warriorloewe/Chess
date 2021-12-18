@@ -251,7 +251,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 						boolean sameState = (f.enPassant == ff.enPassant);
 						boolean sameCastleRights = true;
 						if(sameFigur && f instanceof King) {
-							if(!(f.canCastleShort() == ff.canCastleShort() && f.canCastleLong() == ff.canCastleLong() && (f.moved == ff.moved))) {
+							if(!(f.canCastleShort() == ff.canCastleShort() && f.canCastleLong() == ff.canCastleLong() && f.moved == ff.moved)) {
 								sameCastleRights = false;
 							}
 						}
@@ -271,7 +271,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 			}
 			System.out.println("--------------------");
 		}
-		if(counter >= 3) {
+		if(counter >= 2) {
 			gameOver = true;
 			winningReason = "Draw by repetition";
 		}
@@ -287,6 +287,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 					Figur f = map[i][j].figur;
 					if(f.name.contains("king")) {
 						newMap[i][j].figur = new King(j, i, f.color, this, f.uniqueId, f.enPassant);
+						newMap[i][j].figur.moved = f.moved;
 					} else if (f.name.contains("rook")) {
 						newMap[i][j].figur = new Rook(j, i, f.color, this, f.uniqueId, f.enPassant);
 					} else if (f.name.contains("queen")) {
