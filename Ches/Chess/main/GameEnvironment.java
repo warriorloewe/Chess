@@ -222,13 +222,44 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 	}
 	
 	public void update(Figur f, Spielfeld start, Spielfeld end) {
+		boolean promoted = false;
+		if(f.name.contains("pawn")) {
+			if((end.y == 7 && f.color == "black") || (end.y == 0 && f.color == "white")) {
+				boolean chosen = false;
+				while(!chosen) {
+					String answer = JOptionPane.showInputDialog("Promotion: Knight/Bishop/Rook/Queen", "Queen");
+					chosen = true;
+					if(answer.contains("k") || answer.contains("K") && !(answer.contains("r") || answer.contains("R"))) {
+						end.figur = new Knight(end.x, end.y, f.color, this, String.valueOf(Math.random()), false);
+					} else if(answer.contains("b") || answer.contains("B")) {
+						end.figur = new Bishop(end.x, end.y, f.color, this, String.valueOf(Math.random()), false);
+					} else if(answer.contains("r") || answer.contains("R")) {
+						end.figur = new Rook(end.x, end.y, f.color, this, String.valueOf(Math.random()), false);
+					} else if(answer.contains("q") || answer.contains("Q")) {
+						end.figur = new Queen(end.x, end.y, f.color, this, String.valueOf(Math.random()), false);
+					} else {
+						chosen = false;
+					}
+				}
+				promoted = true;
+				if(f.color == "black") {
+					blackFigures.remove(f);
+					blackFigures.add(end.figur);
+				} else {
+					whiteFigures.remove(f);
+					whiteFigures.add(end.figur);
+				}
+			}
+		}
+		if(!promoted) {
+			end.figur = f;
+			f.x = end.x;
+			f.y = end.y;
+			f.moved = true;
+		}
 		start.figur = null;
-		end.figur = f;
-		f.x = end.x;
-		f.y = end.y;
 		selectedFigur = null;
 		selectedField = null;
-		f.moved = true;
 		checkForMate();
 		checkForStalemate();
 		if(whitesMove) {
