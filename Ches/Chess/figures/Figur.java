@@ -116,6 +116,19 @@ public abstract class Figur {
 	
 	public ArrayList<Spielfeld> checkForCastle() {
 		ArrayList<Spielfeld> reachableFields = new ArrayList<Spielfeld>();
+		if(this.color.contains("white")) {
+			for(Figur f : this.ge.blackFigures) {
+				if(f.canAttack(this)) {
+					return reachableFields;
+				}
+			}
+		} else {
+			for(Figur f : this.ge.whiteFigures) {
+				if(f.canAttack(this)) {
+					return reachableFields;
+				}
+			}
+		}
 		if(this.moved) return reachableFields;
 		boolean longC = true;
 		boolean shortC = true;

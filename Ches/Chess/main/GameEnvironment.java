@@ -8,21 +8,22 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 
+import javax.swing.JOptionPane;
+
 public class GameEnvironment implements Runnable, MouseListener, MouseMotionListener {
 	
 	public int width = 8;
-	public int timeLeftWhite;
-	public int timeLeftBlack;
 	public int mouseX = 0;
 	public int mouseY = 0;
 	public int lastMouseX = 0;
 	public int lastMouseY = 0;
-	public int increment;
+	public int increment = -1;
 	public int fiftyMoveRule = -1;
 	public boolean fiftyMoveRuleLastMoveWhite = true;
 	public boolean whitesMove = true;
 	public boolean dragNDrop = false;
 	public boolean gameOver = false;
+	public boolean started = false;
 	public ArrayList<Figur> blackFigures;
 	public ArrayList<Figur> whiteFigures;
 	public ArrayList<Spielfeld[][]> boards;
@@ -33,13 +34,9 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 	public King white_king;
 	public String winningReason;
 	public SchachComponent sc;
-	
-	public GameEnvironment(SchachComponent _sc, int time, int increment, boolean dad) {
-		this.sc = _sc;
-		this.timeLeftWhite = time;
-		this.timeLeftBlack = time;
-		this.increment = increment;
-		this.dragNDrop = dad;
+	public Timer timeLeftBlack;
+	public Timer timeLeftWhite;
+	public GameEnvironment() {
 		Spielfeld.width = 1000/width;
 		map = new Spielfeld[width][width];
 		for(int i = 0; i < width; i++) {
@@ -73,8 +70,6 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		
 		white_king = (King) map[7][4].figur;
 		black_king = (King) map[0][4].figur;
-		
-		sc.map = map;
 		whiteFigures = new ArrayList<Figur>();
 		blackFigures = new ArrayList<Figur>();
 		for(int i = 0; i < map[0].length; i++) {
@@ -156,13 +151,11 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 	
 	public void move(Figur f, Spielfeld start, Spielfeld end) {
 		if(whitesMove) {
-			timeLeftWhite += increment;
 			if(fiftyMoveRuleLastMoveWhite){
 				fiftyMoveRule++;
 			}
 		}
 		else {
-			timeLeftBlack += increment;
 			if(!fiftyMoveRuleLastMoveWhite){
 				fiftyMoveRule++;
 			}
@@ -192,6 +185,37 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 				map[f.y][f.x-1].figur.moved = true;
 			}
 		}
+		updateAfterMove();
+	}
+	
+	public void take(Figur f, Spielfeld start, Spielfeld end) {
+		fiftyMoveRule = 0;
+		fiftyMoveRuleLastMoveWhite = whitesMove;
+		if(end.figur == null) { // en passant
+			if(f.color == "white") {
+				map[end.y+1][end.x].figur = null;
+				blackFigures.remove(map[end.y+1][end.x].figur);
+			} else {
+				map[end.y-1][end.x].figur = null;
+				whiteFigures.remove(map[end.y-1][end.x].figur);
+			}
+		} else {
+			if(f.color.contains("white")) {
+				blackFigures.remove(end.figur);
+			} else {
+				whiteFigures.remove(end.figur);
+			}
+		}
+		update(f, start, end);
+		if(f.color == "white") {
+			blackFigures.remove(end.figur);
+		} else {
+			whiteFigures.remove(end.figur);
+		}
+		updateAfterMove();
+	}
+	
+	public void updateAfterMove() {
 		updateMarkers();
 		updateEnPassant();
 		checkRepetition();
@@ -206,29 +230,19 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		selectedField = null;
 		f.moved = true;
 		checkForMate();
+		checkForStalemate();
+		if(whitesMove) {
+			timeLeftWhite.time += increment;
+			timeLeftBlack.running = true;
+			timeLeftWhite.running = false;
+		}
+		else {
+			timeLeftBlack.time += increment;
+			timeLeftBlack.running = false;
+			timeLeftWhite.running = true;
+		}
 		whitesMove = !whitesMove;
 		
-	}
-	
-	public void take(Figur f, Spielfeld start, Spielfeld end) {
-		fiftyMoveRule = 0;
-		fiftyMoveRuleLastMoveWhite = whitesMove;
-		if(end.figur == null) { // en passant
-			if(f.color == "white") {
-				map[end.y+1][end.x].figur = null;
-			} else {
-				map[end.y-1][end.x].figur = null;
-			}
-		}
-		update(f, start, end);
-		if(f.color == "white") {
-			blackFigures.remove(end.figur);
-		} else {
-			whiteFigures.remove(end.figur);
-		}
-		updateMarkers();
-		updateEnPassant();
-		checkRepetition();
 	}
 	
 	public void checkRepetition() {
@@ -236,8 +250,6 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		int boardNmbr = -1;
 		for(Spielfeld[][] board : boards) {
 			boardNmbr++;
-			System.out.println("--------------------");
-			System.out.println(boardNmbr + ", " + ((boardNmbr % 2 == 0) == whitesMove));
 			if(!((boardNmbr % 2 == 0) == whitesMove)) {
 				continue;
 			}
@@ -251,25 +263,21 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 						boolean sameState = (f.enPassant == ff.enPassant);
 						boolean sameCastleRights = true;
 						if(sameFigur && f instanceof King) {
-							if(!(f.canCastleShort() == ff.canCastleShort() && f.canCastleLong() == ff.canCastleLong() && f.moved == ff.moved)) {
-								sameCastleRights = false;
+							if(!f.moved) {
+								if(!(f.canCastleShort() == ff.canCastleShort() && f.canCastleLong() == ff.canCastleLong() && f.moved == ff.moved)) {
+									sameCastleRights = false;
+								}
 							}
 						}
 						same = sameFigur && sameState && sameCastleRights;
-						if(!same) {
-							System.out.println(map[i][j].name + ", " + sameFigur + ", " + sameState + ", " + sameCastleRights);
-						}
 					} else if((map[i][j].figur == null) != (board[i][j].figur == null)) {
 						same = false;
-						System.out.println(map[i][j].name + ", " + ((map[i][j].figur == null) != (board[i][j].figur == null)));
 					}
 				}
 			}
 			if(same) {
 				counter++;
-				System.out.println("Counter: " + counter);
-			}
-			System.out.println("--------------------");
+			}		
 		}
 		if(counter >= 2) {
 			gameOver = true;
@@ -341,13 +349,40 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		}
 	}
 	
+	public void checkForStalemate() {
+		if(whitesMove) {
+			for(Figur f : whiteFigures) {
+				if(f.canAttack(black_king)) {
+					return;
+				}
+			}
+			for(Figur ff : blackFigures) {
+				if(ff.getReachableEnemies().size() > 0 || ff.getReachableFields().size() > 0) {
+					return;
+				}
+			}
+			gameOver = true;
+			winningReason = "Stalemate";
+		} else {
+			for(Figur f : blackFigures) {
+				if(f.canAttack(white_king)) {
+					return;
+				}
+			}
+			for(Figur ff : whiteFigures) {
+				if(ff.getReachableEnemies().size() > 0 || ff.getReachableFields().size() > 0) {
+					return;
+				}
+			}
+			gameOver = true;
+			winningReason = "Draw by Stalemate";
+		}
+	}
+	
 	public void checkForMate() {
 		if(whitesMove) {
 			for(Figur f : whiteFigures) {
 				if(f.canAttack(black_king)) {
-					if(black_king.getReachableFields().size() > 0) {
-						return;
-					}
 					for(Figur ff : blackFigures) {
 						if(ff.getReachableEnemies().size() > 0 || ff.getReachableFields().size() > 0) {
 							return;
@@ -361,9 +396,6 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		} else {
 			for(Figur f : blackFigures) {
 				if(f.canAttack(white_king)) {
-					if(white_king.getReachableFields().size() > 0) {
-						return;
-					}
 					for(Figur ff : whiteFigures) {
 						if(ff.getReachableEnemies().size() > 0 || ff.getReachableFields().size() > 0) {
 							return;
@@ -377,35 +409,47 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		}
 	}
 	
+	public void getInputs() {
+		timeLeftBlack = new Timer(-1);
+		while(timeLeftBlack.time <= 0) {
+			timeLeftBlack = new Timer(Integer.valueOf(JOptionPane.showInputDialog("Time in seconds:", 300)) * 1000);
+		}
+		timeLeftWhite = new Timer(timeLeftBlack.time);
+		while(increment < 0) {
+			increment = Integer.valueOf(JOptionPane.showInputDialog("Increment in seconds:", 5)) * 1000;
+		}
+		System.out.println(increment);
+		if(JOptionPane.showConfirmDialog(null, "Drag and Drop on?", "Drag and Drop", 0, 3) == 0) {
+			dragNDrop = true;
+		}
+	}
+	
 	public void run() {
-		Timer timer = new Timer();
-		timer.startTimer();
-		int time = 0;
+		getInputs();
+		timeLeftWhite.running = true;
 		while(true) {
 			sc.repaint();
-			if(timer.time > time && !gameOver) {
-				time++;
-				if(whitesMove) {
-					timeLeftWhite--;
-					if(timeLeftWhite <= 0) {
-						gameOver = true;
-
-						winningReason = "Black won because whites time ran out";
-					}
+			if(gameOver) {
+				JOptionPane.showMessageDialog(null, winningReason);
+				System.exit(0);
+			}
+			if(whitesMove) {
+				if(timeLeftWhite.time <= 0) {
+					gameOver = true;
+					winningReason = "Black won because whites time ran out";
 				}
-				else {
-					timeLeftBlack--;
-					if(timeLeftBlack <= 0) {
-						gameOver = true;
-						winningReason = "White won because blacks time ran out";
-					}
+			}
+			else {
+				if(timeLeftBlack.time <= 0) {
+					gameOver = true;
+					winningReason = "White won because blacks time ran out";
 				}
 			}
 			try {
 		        Thread.sleep(20);
-		      } catch (InterruptedException e) {
-		        e.printStackTrace();
-		      }
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

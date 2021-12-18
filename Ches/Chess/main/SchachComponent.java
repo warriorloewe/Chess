@@ -8,18 +8,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.JComponent;
-import javax.swing.JOptionPane;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 
 public class SchachComponent extends JComponent {
 	
 	private static final long serialVersionUID = 1L;
-	Spielfeld[][] map;
 	Rectangle window;
 	public int offsetX;
 	public int offsetY;
-	public boolean gameOverShown = false;
 	ArrayList<BufferedImage> sprites;
 	ArrayList<String> sprite_names;
 	Color selected = new Color(120, 120, 120, 120);
@@ -29,7 +26,7 @@ public class SchachComponent extends JComponent {
 	Font time = new Font(Font.SERIF, 30, 80);
 	Font winner = new Font(Font.SERIF, 30, 75);
 	GameEnvironment ge;
-	public SchachComponent(Rectangle _window, int _offsetX, int _offsetY, GameEnvironment ge) {
+	public SchachComponent(Rectangle _window, int _offsetX, int _offsetY, GameEnvironment ge, SchachFrame sf) {
 		super();
 		this.ge = ge;
 		this.window = _window;
@@ -63,38 +60,38 @@ public class SchachComponent extends JComponent {
 	public void paint(Graphics g) {
 		super.paint(g);
 		g.drawImage(sprites.get(0), 0, 0, window.width, window.height, null);
-		for(int i = 0; i < map[0].length; i++) {
-			for(int j = 0; j < map.length; j++) {
+		for(int i = 0; i < ge.map[0].length; i++) {
+			for(int j = 0; j < ge.map.length; j++) {
 				if((i + j) % 2 == 0) {
 					g.setColor(Color.white);
 				} else {
 					g.setColor(Color.cyan);
 				}
-				g.fillRect(offsetX + map[i][j].bounds.x, offsetY + map[i][j].bounds.y, Spielfeld.width, Spielfeld.width);
+				g.fillRect(offsetX + ge.map[i][j].bounds.x, offsetY + ge.map[i][j].bounds.y, Spielfeld.width, Spielfeld.width);
 				g.setColor(Color.black);
-				g.drawString(map[i][j].name, offsetX + map[i][j].bounds.x + 2, offsetY + map[i][j].bounds.y + Spielfeld.width - 2);
-				if(map[i][j].figur != null) {
-					if(map[i][j].figur == ge.selectedFigur && ge.dragNDrop) {
+				g.drawString(ge.map[i][j].name, offsetX + ge.map[i][j].bounds.x + 2, offsetY + ge.map[i][j].bounds.y + Spielfeld.width - 2);
+				if(ge.map[i][j].figur != null) {
+					if(ge.map[i][j].figur == ge.selectedFigur && ge.dragNDrop) {
 					} else {
 						for(String str : sprite_names) {
-							if(str.contains(map[i][j].figur.name)) {
-								g.drawImage(sprites.get(sprite_names.indexOf(str) + 1), offsetX + map[i][j].bounds.x, offsetY + map[i][j].bounds.y, Spielfeld.width, Spielfeld.width, null);
+							if(str.contains(ge.map[i][j].figur.name)) {
+								g.drawImage(sprites.get(sprite_names.indexOf(str) + 1), offsetX + ge.map[i][j].bounds.x, offsetY + ge.map[i][j].bounds.y, Spielfeld.width, Spielfeld.width, null);
 								break;
 							}
 						}
 					}
 					
 				}
-				if(map[i][j].marked) {
+				if(ge.map[i][j].marked) {
 					g.setColor(marked);
-					g.fillOval(offsetX + map[i][j].bounds.x + Spielfeld.width/4, offsetY + map[i][j].bounds.y + Spielfeld.width/4, Spielfeld.width/2, Spielfeld.width/2);
-				} else if(map[i][j].attackable) {
-					if(map[i][j].figur == null) {
+					g.fillOval(offsetX + ge.map[i][j].bounds.x + Spielfeld.width/4, offsetY + ge.map[i][j].bounds.y + Spielfeld.width/4, Spielfeld.width/2, Spielfeld.width/2);
+				} else if(ge.map[i][j].attackable) {
+					if(ge.map[i][j].figur == null) {
 						g.setColor(attackableField);
 					} else {
 						g.setColor(attackableEnemie);
 					}
-					g.fillOval(offsetX + map[i][j].bounds.x + Spielfeld.width/4, offsetY + map[i][j].bounds.y + Spielfeld.width/4, Spielfeld.width/2, Spielfeld.width/2);
+					g.fillOval(offsetX + ge.map[i][j].bounds.x + Spielfeld.width/4, offsetY + ge.map[i][j].bounds.y + Spielfeld.width/4, Spielfeld.width/2, Spielfeld.width/2);
 				}
 			}
 		}
@@ -114,12 +111,11 @@ public class SchachComponent extends JComponent {
 		g.setColor(Color.gray);
 		g.fillRect(20, window.height/2 - 20, 400, 40);
 		g.setFont(time);
-		g.drawString((int) ge.timeLeftBlack/60 + " : " + ge.timeLeftBlack % 60, 120, window.height/2 - 100);
-		g.drawString((int) ge.timeLeftWhite/60 + " : " + ge.timeLeftWhite % 60, 120, window.height/2 + 130);
-		if(ge.gameOver && !gameOverShown) {
-			gameOverShown = true;
-			JOptionPane.showMessageDialog(null, ge.winningReason);
+		if(ge.timeLeftBlack != null && ge.timeLeftWhite != null) {
+			g.drawString((int) ge.timeLeftBlack.time/60000 + " : " + ge.timeLeftBlack.time/1000 % 60, 120, window.height/2 - 100);
+			g.drawString((int) ge.timeLeftWhite.time/60000 + " : " + ge.timeLeftWhite.time/1000 % 60, 120, window.height/2 + 130);
 		}
+		repaint();
 	}
 	protected void finalize() {
 		System.out.println("object is garbage collected ");

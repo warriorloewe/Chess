@@ -20,17 +20,17 @@ public class SchachFrame extends JFrame {
 		contentPane.setBounds(window);
 		contentPane.setVisible(true);
 		
-		sc = new SchachComponent(window, window.width/2 - 500, window.height/2 - 520, ge);
+		ge = new GameEnvironment();
+		sc = new SchachComponent(window, window.width/2 - 500, window.height/2 - 520, ge, this);
+		ge.sc = sc;
 		sc.setBounds(window);
 		sc.setVisible(true);
 		add(sc);
 		
-		ge = new GameEnvironment(sc, time, increment, dad);
-		sc.ge = ge;
+		setResizable(false);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setVisible(true);
 		addMouseListener(ge);
 		addMouseMotionListener(ge);
-		setResizable(false);
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		setVisible(true);
 	}
 }
