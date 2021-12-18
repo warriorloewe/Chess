@@ -16,13 +16,15 @@ public abstract class Figur {
 	public String color;
 	public String name;
 	public GameEnvironment ge;
-	
-	public Figur(int _x, int _y, String _color, String _name, GameEnvironment _ge) {
+	public String uniqueId;
+	public Figur(int _x, int _y, String _color, String _name, GameEnvironment _ge, String _uniqueId, boolean _enPassant) {
 		this.x = _x;
 		this.y = _y;
 		this.color = _color;
 		this.name = _name;
 		this.ge = _ge;
+		this.uniqueId = _uniqueId;
+		this.enPassant = _enPassant;
 	}
 	
 	public abstract boolean canAttack(Figur f);

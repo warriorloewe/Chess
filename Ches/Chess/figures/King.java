@@ -5,8 +5,8 @@ import main.Spielfeld;
 
 public class King extends Figur {
 
-	public King(int _x, int _y, String _color, GameEnvironment ge) {
-		super(_x, _y, _color, _color + "_king", ge);
+	public King(int _x, int _y, String _color, GameEnvironment ge, String uniqueId, boolean enPassant) {
+		super(_x, _y, _color, _color + "_king", ge, uniqueId, enPassant);
 	}
 
 	@Override

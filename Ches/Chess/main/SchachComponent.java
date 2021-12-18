@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 
@@ -18,6 +19,7 @@ public class SchachComponent extends JComponent {
 	Rectangle window;
 	public int offsetX;
 	public int offsetY;
+	public boolean gameOverShown = false;
 	ArrayList<BufferedImage> sprites;
 	ArrayList<String> sprite_names;
 	Color selected = new Color(120, 120, 120, 120);
@@ -114,12 +116,9 @@ public class SchachComponent extends JComponent {
 		g.setFont(time);
 		g.drawString((int) ge.timeLeftBlack/60 + " : " + ge.timeLeftBlack % 60, 120, window.height/2 - 100);
 		g.drawString((int) ge.timeLeftWhite/60 + " : " + ge.timeLeftWhite % 60, 120, window.height/2 + 130);
-		if(ge.gameOver) {
-			g.setColor(Color.black);
-			g.fillRect(140, window.height/2 - 120, window.width - 280, 220);
-			g.drawImage(sprites.get(0), 150, window.height/2 - 110, window.width - 300, 200, null);
-			g.setColor(Color.black);
-			g.drawString("Player " + ge.winner + " has won because " + ge.winningReason, window.width/2 - 750, window.height/2);
+		if(ge.gameOver && !gameOverShown) {
+			gameOverShown = true;
+			JOptionPane.showMessageDialog(null, ge.winningReason);
 		}
 	}
 	protected void finalize() {

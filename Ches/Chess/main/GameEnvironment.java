@@ -18,17 +18,19 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 	public int lastMouseX = 0;
 	public int lastMouseY = 0;
 	public int increment;
+	public int fiftyMoveRule = -1;
+	public boolean fiftyMoveRuleLastMoveWhite = true;
 	public boolean whitesMove = true;
 	public boolean dragNDrop = false;
 	public boolean gameOver = false;
 	public ArrayList<Figur> blackFigures;
 	public ArrayList<Figur> whiteFigures;
+	public ArrayList<Spielfeld[][]> boards;
 	public Spielfeld[][] map;
 	public Spielfeld selectedField;
 	public Figur selectedFigur;
 	public King black_king;
 	public King white_king;
-	public String winner;
 	public String winningReason;
 	public SchachComponent sc;
 	
@@ -47,27 +49,27 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 			}
 		}
 		for(int i = 0; i < 8; i++) {
-			map[1][i].figur = new Pawn(i, 1, "black", this);
-			map[6][i].figur = new Pawn(i, 6, "white", this);
+			map[1][i].figur = new Pawn(i, 1, "black", this, "", false);
+			map[6][i].figur = new Pawn(i, 6, "white", this, "", false);
 		}
 		
-		map[7][0].figur = new Rook(0, 7, "white", this);
-		map[7][1].figur = new Knight(1, 7, "white", this);
-		map[7][2].figur = new Bishop(2, 7, "white", this);
-		map[7][3].figur = new Queen(3, 7, "white", this);
-		map[7][4].figur = new King(4, 7, "white", this);
-		map[7][5].figur = new Bishop(5, 7, "white", this);
-		map[7][6].figur = new Knight(6, 7, "white", this);
-		map[7][7].figur = new Rook(7, 7, "white", this);
+		map[7][0].figur = new Rook(0, 7, "white", this, "", false);
+		map[7][1].figur = new Knight(1, 7, "white", this, "", false);
+		map[7][2].figur = new Bishop(2, 7, "white", this, "", false);
+		map[7][3].figur = new Queen(3, 7, "white", this, "", false);
+		map[7][4].figur = new King(4, 7, "white", this, "", false);
+		map[7][5].figur = new Bishop(5, 7, "white", this, "", false);
+		map[7][6].figur = new Knight(6, 7, "white", this, "", false);
+		map[7][7].figur = new Rook(7, 7, "white", this, "", false);
 		
-		map[0][0].figur = new Rook(0, 0, "black", this);
-		map[0][1].figur = new Knight(1, 0, "black", this);
-		map[0][2].figur = new Bishop(2, 0, "black", this);
-		map[0][3].figur = new Queen(3, 0, "black", this);
-		map[0][4].figur = new King(4, 0, "black", this);
-		map[0][5].figur = new Bishop(5, 0, "black", this);
-		map[0][6].figur = new Knight(6, 0, "black", this);
-		map[0][7].figur = new Rook(7, 0, "black", this);		
+		map[0][0].figur = new Rook(0, 0, "black", this, "", false);
+		map[0][1].figur = new Knight(1, 0, "black", this, "", false);
+		map[0][2].figur = new Bishop(2, 0, "black", this, "", false);
+		map[0][3].figur = new Queen(3, 0, "black", this, "", false);
+		map[0][4].figur = new King(4, 0, "black", this, "", false);
+		map[0][5].figur = new Bishop(5, 0, "black", this, "", false);
+		map[0][6].figur = new Knight(6, 0, "black", this, "", false);
+		map[0][7].figur = new Rook(7, 0, "black", this, "", false);		
 		
 		white_king = (King) map[7][4].figur;
 		black_king = (King) map[0][4].figur;
@@ -83,9 +85,12 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 					} else {
 						blackFigures.add(map[i][j].figur);
 					}
+					map[i][j].figur.uniqueId = map[i][j].name;
 				}
 			}
 		}
+		boards = new ArrayList<Spielfeld[][]>();
+		addBoard();
 		Thread run = new Thread(this);
 		run.start();
 	}
@@ -150,17 +155,27 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 	}
 	
 	public void move(Figur f, Spielfeld start, Spielfeld end) {
-		if(whitesMove) timeLeftWhite += increment;
-		else timeLeftBlack += increment;
-		start.figur = null;
-		end.figur = f;
-		f.x = end.x;
-		f.y = end.y;
-		selectedFigur = null;
-		selectedField = null;
-		f.moved = true;
-		updateMarkers();
-		updateEnPassant();
+		if(whitesMove) {
+			timeLeftWhite += increment;
+			if(fiftyMoveRuleLastMoveWhite){
+				fiftyMoveRule++;
+			}
+		}
+		else {
+			timeLeftBlack += increment;
+			if(!fiftyMoveRuleLastMoveWhite){
+				fiftyMoveRule++;
+			}
+		}
+		if(f.name.contains("pawn")) {
+			fiftyMoveRule = 0;
+			fiftyMoveRuleLastMoveWhite = whitesMove;
+		}
+		if(fiftyMoveRule >= 50) {
+			gameOver = true;
+			winningReason = "Draw, fifty moves have been made without capturing or advancing a pawn";
+		}
+		update(f, start, end);
 		if(f.name.contains("pawn")) {
 			Pawn ff = (Pawn) f;
 			if(Math.abs(start.y - end.y) == 2) ff.enPassant = true;
@@ -177,23 +192,12 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 				map[f.y][f.x-1].figur.moved = true;
 			}
 		}
-		checkForMate();
-		whitesMove = !whitesMove;
+		updateMarkers();
+		updateEnPassant();
+		checkRepetition();
 	}
 	
-	public void take(Figur f, Spielfeld start, Spielfeld end) {
-		if(end.figur == null) { // en passant
-			if(f.color == "white") {
-				map[end.y+1][end.x].figur = null;
-			} else {
-				map[end.y-1][end.x].figur = null;
-			}
-		}
-		if(f.color == "white") {
-			blackFigures.remove(end.figur);
-		} else {
-			whiteFigures.remove(end.figur);
-		}
+	public void update(Figur f, Spielfeld start, Spielfeld end) {
 		start.figur = null;
 		end.figur = f;
 		f.x = end.x;
@@ -201,10 +205,104 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		selectedFigur = null;
 		selectedField = null;
 		f.moved = true;
-		updateMarkers();
-		updateEnPassant();
 		checkForMate();
 		whitesMove = !whitesMove;
+		
+	}
+	
+	public void take(Figur f, Spielfeld start, Spielfeld end) {
+		fiftyMoveRule = 0;
+		fiftyMoveRuleLastMoveWhite = whitesMove;
+		if(end.figur == null) { // en passant
+			if(f.color == "white") {
+				map[end.y+1][end.x].figur = null;
+			} else {
+				map[end.y-1][end.x].figur = null;
+			}
+		}
+		update(f, start, end);
+		if(f.color == "white") {
+			blackFigures.remove(end.figur);
+		} else {
+			whiteFigures.remove(end.figur);
+		}
+		updateMarkers();
+		updateEnPassant();
+		checkRepetition();
+	}
+	
+	public void checkRepetition() {
+		int counter = 0;
+		int boardNmbr = -1;
+		for(Spielfeld[][] board : boards) {
+			boardNmbr++;
+			System.out.println("--------------------");
+			System.out.println(boardNmbr + ", " + ((boardNmbr % 2 == 0) == whitesMove));
+			if(!((boardNmbr % 2 == 0) == whitesMove)) {
+				continue;
+			}
+			boolean same = true;
+			for(int i = 0; i < map[0].length; i++) {
+				for(int j = 0; j < map.length; j++) {
+					if(map[i][j].figur != null && board[i][j].figur != null && same) {
+						Figur f = map[i][j].figur;
+						Figur ff = board[i][j].figur;
+						boolean sameFigur = f.uniqueId.contains(ff.uniqueId);
+						boolean sameState = (f.enPassant == ff.enPassant);
+						boolean sameCastleRights = true;
+						if(sameFigur && f instanceof King) {
+							if(!(f.canCastleShort() == ff.canCastleShort() && f.canCastleLong() == ff.canCastleLong() && (f.moved == ff.moved))) {
+								sameCastleRights = false;
+							}
+						}
+						same = sameFigur && sameState && sameCastleRights;
+						if(!same) {
+							System.out.println(map[i][j].name + ", " + sameFigur + ", " + sameState + ", " + sameCastleRights);
+						}
+					} else if((map[i][j].figur == null) != (board[i][j].figur == null)) {
+						same = false;
+						System.out.println(map[i][j].name + ", " + ((map[i][j].figur == null) != (board[i][j].figur == null)));
+					}
+				}
+			}
+			if(same) {
+				counter++;
+				System.out.println("Counter: " + counter);
+			}
+			System.out.println("--------------------");
+		}
+		if(counter >= 3) {
+			gameOver = true;
+			winningReason = "Draw by repetition";
+		}
+		addBoard();
+	}
+	
+	public void addBoard() {
+		Spielfeld[][] newMap = new Spielfeld[map.length][map[0].length];
+		for(int i = 0; i < map[0].length; i++) {
+			for(int j = 0; j < map.length; j++) {
+				newMap[i][j] = new Spielfeld(j, i, null, map[i][j].bounds, map[i][j].name);
+				if(map[i][j].figur != null) {
+					Figur f = map[i][j].figur;
+					if(f.name.contains("king")) {
+						newMap[i][j].figur = new King(j, i, f.color, this, f.uniqueId, f.enPassant);
+					} else if (f.name.contains("rook")) {
+						newMap[i][j].figur = new Rook(j, i, f.color, this, f.uniqueId, f.enPassant);
+					} else if (f.name.contains("queen")) {
+						newMap[i][j].figur = new Queen(j, i, f.color, this, f.uniqueId, f.enPassant);
+					} else if (f.name.contains("bishop")) {
+						newMap[i][j].figur = new Bishop(j, i, f.color, this, f.uniqueId, f.enPassant);
+					} else if (f.name.contains("pawn")) {
+						newMap[i][j].figur = new Pawn(j, i, f.color, this, f.uniqueId, f.enPassant);
+					} else if (f.name.contains("knight")) {
+						newMap[i][j].figur = new Knight(j, i, f.color, this, f.uniqueId, f.enPassant);
+					}
+				}
+
+			}
+		}
+		boards.add(newMap);
 	}
 	
 	public void updateEnPassant() {
@@ -255,8 +353,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 						}
 					}
 					gameOver = true;
-					winner = "white";
-					winningReason = "of Check Mate";
+					winningReason = "White won because of Check Mate";
 					return;
 				}
 			}
@@ -272,8 +369,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 						}
 					}
 					gameOver = true;
-					winner = "black";
-					winningReason = "of Check Mate";
+					winningReason = "Black won because of Check Mate";
 					return;
 				}
 			}
@@ -292,16 +388,15 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 					timeLeftWhite--;
 					if(timeLeftWhite <= 0) {
 						gameOver = true;
-						winner = "black";
-						winningReason = "time ran out";
+
+						winningReason = "Black won because whites time ran out";
 					}
 				}
 				else {
 					timeLeftBlack--;
 					if(timeLeftBlack <= 0) {
 						gameOver = true;
-						winner = "white";
-						winningReason = "time ran out";
+						winningReason = "White won because blacks time ran out";
 					}
 				}
 			}

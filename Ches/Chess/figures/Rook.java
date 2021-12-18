@@ -6,8 +6,8 @@ import main.Spielfeld;
 
 public class Rook extends Figur {
 
-	public Rook(int _x, int _y, String _color, GameEnvironment ge) {
-		super(_x, _y, _color, _color + "_rook", ge);
+	public Rook(int _x, int _y, String _color, GameEnvironment ge, String uniqueId, boolean enPassant) {
+		super(_x, _y, _color, _color + "_rook", ge, uniqueId, enPassant);
 		this.isLongRange = true;
 	}
 

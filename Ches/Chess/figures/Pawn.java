@@ -5,8 +5,8 @@ import main.Spielfeld;
 
 public class Pawn extends Figur{
 	
-	public Pawn(int _x, int _y, String _color, GameEnvironment ge) {
-		super(_x, _y, _color, _color + "_pawn", ge);
+	public Pawn(int _x, int _y, String _color, GameEnvironment ge, String uniqueId, boolean enPassant) {
+		super(_x, _y, _color, _color + "_pawn", ge, uniqueId, enPassant);
 	}
 
 	public boolean canReach(Spielfeld sf) {
