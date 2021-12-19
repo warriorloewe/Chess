@@ -1,13 +1,12 @@
 package main;
-import figures.*;
 
+import figures.*;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
-
 import javax.swing.JOptionPane;
 
 public class GameEnvironment implements Runnable, MouseListener, MouseMotionListener {
@@ -19,26 +18,34 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 	public int lastMouseY = 0;
 	public int increment; // increment added everytime a move has been made
 	public int fiftyMoveRule = -1; // counts how many moves have been made since a piece has been captured or a pawn has been moved
+	
 	public boolean fiftyMoveRuleLastMoveWhite = true; //  stores if white has made the last move interrupting the 50 move rule
 	public boolean whitesMove = true;
 	public boolean dragNDrop = false;
 	public boolean gameOver = false;
 	public boolean started = false;
+	
 	public ArrayList<Figure> blackFigures; //  stores all black pieces currently on the board
 	public ArrayList<Figure> whiteFigures; //  stores all white pieces currently on the board
 	public ArrayList<Spielfeld[][]> boards; // used to check for 3 fold repetition
+	
 	public Spielfeld[][] map; // current board
 	public Spielfeld selectedField;
 	public Figure selectedFigure;
 	public King black_king;
 	public King white_king;
+	
 	public String winningReason;
 	public SchachComponent sc;
 	public Timer blackTimer;
 	public Timer whiteTimer;
+	
 	public GameEnvironment() {
 		Spielfeld.width = 1000/width;
 		map = new Spielfeld[width][width];
+		/*
+		 * board is created and every piece is put on its starting square
+		 */
 		for(int i = 0; i < width; i++) {
 			for(int j = 0; j < width; j++) {
 				map[i][j] = new Spielfeld(j, i, null, new Rectangle(j * Spielfeld.width, i * Spielfeld.width, Spielfeld.width, Spielfeld.width), (char) (97 + j) + String.valueOf(8 - i));
@@ -202,6 +209,9 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		boolean promoted = false;
 		if(f.name.contains("pawn")) {
 			if((end.y == 7 && f.color == "black") || (end.y == 0 && f.color == "white")) {
+				/*
+				 * promotion
+				 */
 				boolean chosen = false;
 				while(!chosen) {
 					String answer = JOptionPane.showInputDialog("Promotion: Knight/Bishop/Rook/Queen", "Queen");
@@ -272,11 +282,19 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 	}
 	
 	public void checkRepetition() {
+		/*
+		 * goes through every single board of this match and compares it to the current board
+		 * if two matching boards have been found this position has occured three times
+		 * this results in a draw
+		 */
 		int counter = 0;
 		int boardNmbr = -1;
 		for(Spielfeld[][] board : boards) {
 			boardNmbr++;
 			if(!((boardNmbr % 2 == 0) == whitesMove)) {
+				/*
+				 * only checks boards that have the same player moving
+				 */
 				continue;
 			}
 			boolean same = true;
@@ -292,8 +310,10 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 						boolean sameState = (f.enPassant == ff.enPassant);
 						boolean sameCastleRights = true;
 						if(sameFigure && f instanceof King) {
-							if(!(f.canCastleShort() == ff.canCastleShort() && f.canCastleLong() == ff.canCastleLong() && f.moved == ff.moved)) {
-								sameCastleRights = false;
+							if(!f.moved) {
+								if(!(f.canCastleShort() == ff.canCastleShort() && f.canCastleLong() == ff.canCastleLong() && f.moved == ff.moved)) {
+									sameCastleRights = false;
+								}
 							}
 						}
 						same = sameFigure && sameState && sameCastleRights;
@@ -355,6 +375,11 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 	}
 	
 	public void updateMarkers() {
+		/*
+		 * first clears all markers then if the selected figure isnt null
+		 * it set the fields the figure can move to to marked
+		 * and the ones it can attack to attackable
+		 */
 		for(int i = 0; i < map[0].length; i++) {
 			for(int j = 0; j < map.length; j++) {
 				map[i][j].marked = false;
@@ -382,6 +407,9 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 	}
 	
 	public void checkForStalemate() {
+		/*
+		 * if the king is in check or any other piece can make a move its not a stale mate
+		 */
 		if(whitesMove) {
 			for(Figure f : whiteFigures) {
 				if(f.canAttack(black_king)) {
@@ -412,6 +440,9 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 	}
 	
 	public void checkForMate() {
+		/*
+		 * if the enemy king is in check and none of its pieces can make a legal move its checkamte
+		 */
 		if(whitesMove) {
 			for(Figure f : whiteFigures) {
 				if(f.canAttack(black_king)) {
@@ -462,6 +493,8 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		while(true) {
 			sc.repaint();
 			if(gameOver) {
+				whiteTimer.running = false;
+				blackTimer.running = false;
 				JOptionPane.showMessageDialog(null, winningReason);
 				System.exit(0);
 			}
@@ -494,6 +527,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 				if(map[i][j].bounds.contains(p)) {
 					/*
 					 * finds the square containing the mouse click
+					 * if the figure isnt null and drag and dropis active the figure is set to the active one
 					 */
 					if(dragNDrop) {
 						if(map[i][j].figure != null) {
@@ -507,6 +541,13 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 						}
 						return;
 					}
+					/*
+					 * if drag and drop isnt active you can either click on 
+					 * a square the selected piece can move to
+					 * a square the selected piece can attack 
+					 * select or deselect a figure
+					 * or click on an empty square
+					 */
 					if(map[i][j].marked) {
 						move(selectedFigure, selectedField, map[i][j]);
 					} else if(map[i][j].attackable) {
@@ -529,6 +570,13 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
+		/*
+		 * if drag and drop isnt active this has no if effect
+		 * otherwise you can either release on
+		 * a square the selected piece can move to
+		 * a square the selected piece can attack 
+		 * or on an empty square which resets the piece back to its original position
+		 */
 		if(gameOver || !dragNDrop) return;
 		Point p = new Point(e.getX() - sc.offsetX, e.getY() - sc.offsetY);
 		for(int i = 0; i < map[0].length; i++) {

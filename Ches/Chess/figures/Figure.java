@@ -58,7 +58,7 @@ public abstract class Figure {
 		/*
 		 * moves in a certain direction on the game board 
 		 * until it either hits the edge or another piece
-		 * returns null if the piece is f
+		 * returns null if the piece is friendly or if it reaches the edge
 		 */
 		int xx = this.x + xDirection;
 		int yy = this.y + yDirection;
@@ -73,6 +73,10 @@ public abstract class Figure {
 	}
 	
 	public boolean checkAttackableKing(int xDirection, int yDirection) {
+		/*
+		 * same as last func but also returns null if the enemy piece is not a king
+		 * important it doesnt use a legality check since this function is only used in legality checks itself
+		 */
 		int xx = this.x + xDirection;
 		int yy = this.y + yDirection;
 		while(!(xx < 0 || xx > 7 || yy < 0 || yy > 7)) {
@@ -84,7 +88,6 @@ public abstract class Figure {
 		}
 		return false;
 	}
-	
 	
 	public ArrayList<Spielfeld> getReachableFields() {
 		ArrayList<Spielfeld> reachableFields = new ArrayList<Spielfeld>();
@@ -102,6 +105,7 @@ public abstract class Figure {
 		}
 		return reachableFields;
 	}
+	
 	public ArrayList<Figure> getReachableEnemies() {
 		ArrayList<Figure> reachableEnemies = new ArrayList<Figure>();
 		if(this.color == "white") {
@@ -125,6 +129,12 @@ public abstract class Figure {
 	}
 	
 	public ArrayList<Spielfeld> checkForCastle() {
+		/*
+		 * only used with kings
+		 * return an empty list if the king is attacked or has moved before
+		 * returns the square two to the left of the king if long castling is possible
+		 * and/or the square two to the right of the king if short castling is possible
+		 */
 		ArrayList<Spielfeld> reachableFields = new ArrayList<Spielfeld>();
 		if(this.moved) return reachableFields;
 		if(this.color.contains("white")) {
@@ -142,6 +152,9 @@ public abstract class Figure {
 		}
 		boolean longC = true;
 		boolean shortC = true;
+		/*
+		 * when castling the king cant pass through any squares that are in check
+		 */
 		if(this.color == "white") {
 			for(Figure f : this.ge.blackFigures) {
 				if(f.canReach(this.ge.map[this.y][this.x-1]) || f.canReach(this.ge.map[this.y][this.x-2])) {

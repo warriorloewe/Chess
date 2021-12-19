@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 
@@ -52,9 +53,11 @@ public class SchachComponent extends JComponent {
 			for(String s : sprite_names) {
 				sprites.add(ImageIO.read(new File("Chess/rsc/" + s + ".png")));
 			}
-			sprites.add(ImageIO.read(new File("Chess/rsc/background.jpg")));
+			sprites.add(ImageIO.read(ClassLoader.getSystemClassLoader().getResourceAsStream("rsc/background.jpg")));
 		} catch (IOException e) {
+			JOptionPane.showMessageDialog(null, "Fehler beim Laden der Bilder");
 			e.printStackTrace();
+			System.exit(0);
 		} 
 	}
 	

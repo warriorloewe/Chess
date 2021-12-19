@@ -10,6 +10,10 @@ public class Pawn extends Figure{
 	}
 
 	public boolean canReach(Spielfeld sf) {
+		/*
+		 * if the pawn hasnt moved he can go 2 squares
+		 * otherwise only one
+		 */
 		if(this.color == "black") {
 			return moved ? sf.y - this.y == 1 && sf.x - this.x == 0 : sf.y - this.y > 0 && sf.y - this.y <= 2 && sf.x - this.x == 0;
 		}
