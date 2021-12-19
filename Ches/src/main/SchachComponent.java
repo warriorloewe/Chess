@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Rectangle;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.JComponent;
@@ -51,8 +50,9 @@ public class SchachComponent extends JComponent {
 		sprites = new ArrayList<BufferedImage>();
 		try {
 			for(String s : sprite_names) {
-				sprites.add(ImageIO.read(new File("Chess/rsc/" + s + ".png")));
+				sprites.add(ImageIO.read(ClassLoader.getSystemClassLoader().getResourceAsStream("rsc/" + s + ".png")));
 			}
+			// sprites.add(ImageIO.read(new File("src/rsc/background.jpg")));
 			sprites.add(ImageIO.read(ClassLoader.getSystemClassLoader().getResourceAsStream("rsc/background.jpg")));
 		} catch (IOException e) {
 			JOptionPane.showMessageDialog(null, "Fehler beim Laden der Bilder");

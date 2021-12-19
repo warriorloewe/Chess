@@ -7,7 +7,6 @@ public class Spielfeld {
 	/*
 	 * only used for storing data
 	 */
-	
 	public static int width;
 	public int x;
 	public int y;

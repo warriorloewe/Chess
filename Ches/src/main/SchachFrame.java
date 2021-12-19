@@ -12,9 +12,10 @@ public class SchachFrame extends JFrame {
 	GameEnvironment ge;
 	SchachComponent sc;
 	
-	public SchachFrame(int time, int increment, boolean dad) {
+	public SchachFrame() {
 		super();
 		setBounds(window);
+		setTitle("Leo's Chess Game");
 		
 		ge = new GameEnvironment();
 		sc = new SchachComponent(window, window.width/2 - 500, window.height/2 - 520, ge, this);

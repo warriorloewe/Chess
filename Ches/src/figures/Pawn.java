@@ -22,6 +22,9 @@ public class Pawn extends Figure{
 	
 	@Override
 	public boolean canAttack(Figure f) {
+		/*
+		 * if en passant is possible the square behind or infront dependent on color is attackable
+		 */
 		if(this.color == "black") {
 			return f.enPassant ? (Math.abs(f.x - this.x) == 1 && f.y - this.y == 0) || (Math.abs(f.x - this.x) == 1 && f.y - this.y == 1) : Math.abs(f.x - this.x) == 1 && f.y - this.y == 1;
 		}

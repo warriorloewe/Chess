@@ -27,7 +27,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 	
 	public ArrayList<Figure> blackFigures; //  stores all black pieces currently on the board
 	public ArrayList<Figure> whiteFigures; //  stores all white pieces currently on the board
-	public ArrayList<Spielfeld[][]> boards; // used to check for 3 fold repetition
+	public ArrayList<Spielfeld[][]> boards; // used for 3 fold repetition
 	
 	public Spielfeld[][] map; // current board
 	public Spielfeld selectedField;
@@ -244,15 +244,15 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 			 * this updates the rook if the king has castled
 			 */
 			if(start.x - end.x == 2) {
-				map[f.y][f.x+1].figure = map[f.y][f.x-2].figure;
-				map[f.y][f.x-2].figure = null;
-				map[f.y][f.x+1].figure.x = f.x+1;
-				map[f.y][f.x+1].figure.moved = true;
-			} else if(start.x - end.x == -2) {
-				map[f.y][f.x-1].figure = map[f.y][f.x+1].figure;
-				map[f.y][f.x+1].figure = null;
+				map[f.y][f.x-1].figure = map[f.y][f.x-4].figure;
+				map[f.y][f.x-4].figure = null;
 				map[f.y][f.x-1].figure.x = f.x-1;
 				map[f.y][f.x-1].figure.moved = true;
+			} else if(start.x - end.x == -2) {
+				map[f.y][f.x+1].figure = map[f.y][f.x+3].figure;
+				map[f.y][f.x+3].figure = null;
+				map[f.y][f.x+1].figure.x = f.x+1;
+				map[f.y][f.x+1].figure.moved = true;
 			}
 		}
 		if(!promoted) {

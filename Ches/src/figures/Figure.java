@@ -15,7 +15,7 @@ public abstract class Figure {
 	public boolean enPassant = false; // only used with pawns
 	public String color;
 	public String name;
-	public String uniqueId; // for all normal figures its the starting square, for pawns after promoting its a random number between 0 and 1s
+	public String uniqueId; // for all normal figures its the starting square, for pawns after promoting its a random number between 0 and 1
 	public GameEnvironment ge;
 	public Figure(int _x, int _y, String _color, String _name, GameEnvironment _ge, String _uniqueId, boolean _enPassant) {
 		this.x = _x;
