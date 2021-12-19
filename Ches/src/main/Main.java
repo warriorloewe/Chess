@@ -3,6 +3,7 @@ package main;
 public class Main {
 	/*
 	 * this is my 1.3k line java chess programm with
+	 * handdrawn pieces
 	 * legal moves only
 	 * promotion
 	 * en passant

@@ -266,6 +266,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		selectedField = null;
 		checkForMate();
 		checkForStalemate();
+		checkForInsufficientMaterial();
 		if(whitesMove) {
 			whiteTimer.time += increment;
 			blackTimer.running = true;
@@ -408,6 +409,47 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		}
 	}
 	
+	public void checkForInsufficientMaterial() {
+		/*
+		 * using the rules of chess.com
+		 * https://support.chess.com/article/128-what-does-insufficient-mating-material-mean
+		 * draw if 
+		 * k v k
+		 * k b v k
+		 * k n v k
+		 * k b v k b
+		 * k n v k n
+		 * k b v k n
+		 * k n n v k
+		 */
+		int numberOfBishops = 0;
+		int numberOfKnights = 0;
+		for(Figure f : whiteFigures) {
+			if(f.name.contains("pawn") || f.name.contains("rook") || f.name.contains("queen") || numberOfBishops >= 2 || (numberOfBishops + numberOfKnights >= 2 && numberOfKnights > 0)) {
+				return;
+			} else if(f.name.contains("bishop")) {
+				numberOfBishops++;
+			} else if(f.name.contains("knight")) {
+				numberOfKnights++;
+			}
+		}
+		numberOfBishops = 0;
+		numberOfKnights = 0;
+		for(Figure f : blackFigures) {
+			if(f.name.contains("pawn") || f.name.contains("rook") || f.name.contains("queen") || numberOfBishops >= 2 || (numberOfBishops + numberOfKnights >= 2 && numberOfKnights > 0)) {
+				return;
+			} else if(f.name.contains("bishop")) {
+				numberOfBishops++;
+			} else if(f.name.contains("knight")) {
+				numberOfKnights++;
+			}
+		}
+		if((whiteFigures.size() <= 2 && blackFigures.size() <= 2) || (whiteFigures.size() == 1 && blackFigures.size() == 3) || (whiteFigures.size() == 3 && blackFigures.size() == 1)) {
+			gameOver = true;
+			winningReason = "Draw by insufficient mating material";
+		}
+	}
+	
 	public void checkForStalemate() {
 		/*
 		 * if the king is in check or any other piece can make a move its not a stale mate
@@ -475,17 +517,21 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 	}
 	
 	public void getInputs() {
-		blackTimer = new Timer(-1);
-		while(blackTimer.time <= 0) {
-			blackTimer = new Timer(Integer.valueOf(JOptionPane.showInputDialog("Time in seconds:", 300)) * 1000);
-		}
-		whiteTimer = new Timer(blackTimer.time);
-		increment = -1;
-		while(increment < 0) {
-			increment = Integer.valueOf(JOptionPane.showInputDialog("Increment in seconds:", 5)) * 1000;
-		}
-		if(JOptionPane.showConfirmDialog(null, "Drag and Drop on?", "Drag and Drop", 0, 3) == 0) {
-			dragNDrop = true;
+		try {
+			blackTimer = new Timer(-1);
+			while(blackTimer.time <= 0) {
+				blackTimer = new Timer(Integer.valueOf(JOptionPane.showInputDialog("Time in seconds:", 300)) * 1000);
+			}
+			whiteTimer = new Timer(blackTimer.time);
+			increment = -1;
+			while(increment < 0) {
+				increment = Integer.valueOf(JOptionPane.showInputDialog("Increment in seconds:", 5)) * 1000;
+			}
+			if(JOptionPane.showConfirmDialog(null, "Drag and Drop on?", "Drag and Drop", 0, 3) == 0) {
+				dragNDrop = true;
+			}
+		} catch(Exception e) {
+			System.exit(0);
 		}
 	}
 	
