@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import main.GameEnvironment;
 import main.Spielfeld;
 
-public class Bishop extends Figur {
+public class Bishop extends Figure {
 
 	public Bishop(int _x, int _y, String _color, GameEnvironment ge, String uniqueId, boolean enPassant) {
 		super(_x, _y, _color, _color + "_bishop", ge, uniqueId, enPassant);
@@ -21,13 +21,11 @@ public class Bishop extends Figur {
 	}
 	
 	@Override
-	public ArrayList<Figur> getReachableEnemies() {
-		ArrayList<Figur> attackableFigures = new ArrayList<Figur>();
+	public ArrayList<Figure> getReachableEnemies() {
+		ArrayList<Figure> attackableFigures = new ArrayList<Figure>();
 		for(int i = 0; i < 4; i++) {
-			Figur f = this.checkAttackable(this.directions[i][0], this.directions[i][1]);
-			if(f == null) {
-				continue;
-			} else {
+			Figure f = this.checkAttackable(this.directions[i][0], this.directions[i][1]);
+			if(f != null) {
 				attackableFigures.add(f);
 			}
 		}
@@ -40,12 +38,12 @@ public class Bishop extends Figur {
 	}
 
 	@Override
-	public boolean canAttack(Figur f) {
+	public boolean canAttack(Figure f) {
 		return getReachableEnemies().contains(f);
 	}
 	
 	@Override
-	public boolean canAttackKing(Figur f) {
+	public boolean canAttackKing(Figure f) {
 		for(int i = 0; i < 4; i++) {
 			if(this.checkAttackableKing(this.directions[i][0], this.directions[i][1])) {
 				return true;

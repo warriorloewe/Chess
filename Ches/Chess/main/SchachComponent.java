@@ -14,21 +14,23 @@ import java.awt.image.BufferedImage;
 public class SchachComponent extends JComponent {
 	
 	private static final long serialVersionUID = 1L;
-	Rectangle window;
 	public int offsetX;
 	public int offsetY;
 	ArrayList<BufferedImage> sprites;
 	ArrayList<String> sprite_names;
+	GameEnvironment ge;
+	
 	Color selected = new Color(120, 120, 120, 120);
 	Color marked = new Color(10, 10, 10, 255);
 	Color attackableField = new Color(255, 0, 0, 255); // en passant
 	Color attackableEnemie = new Color(255, 0, 0, 120);
 	Font time = new Font(Font.SERIF, 30, 80);
 	Font winner = new Font(Font.SERIF, 30, 75);
-	GameEnvironment ge;
-	public SchachComponent(Rectangle _window, int _offsetX, int _offsetY, GameEnvironment ge, SchachFrame sf) {
+	Rectangle window;
+	
+	public SchachComponent(Rectangle _window, int _offsetX, int _offsetY, GameEnvironment _ge, SchachFrame sf) {
 		super();
-		this.ge = ge;
+		this.ge = _ge;
 		this.window = _window;
 		this.offsetX = _offsetX;
 		this.offsetY = _offsetY;
@@ -47,10 +49,10 @@ public class SchachComponent extends JComponent {
 		sprite_names.add("black_bishop");
 		sprites = new ArrayList<BufferedImage>();
 		try {
-			sprites.add(ImageIO.read(new File("Chess/rsc/background.jpg")));
 			for(String s : sprite_names) {
 				sprites.add(ImageIO.read(new File("Chess/rsc/" + s + ".png")));
 			}
+			sprites.add(ImageIO.read(new File("Chess/rsc/background.jpg")));
 		} catch (IOException e) {
 			e.printStackTrace();
 		} 
@@ -59,7 +61,7 @@ public class SchachComponent extends JComponent {
 	@Override
 	public void paint(Graphics g) {
 		super.paint(g);
-		g.drawImage(sprites.get(0), 0, 0, window.width, window.height, null);
+		g.drawImage(sprites.get(sprites.size()-1), 0, 0, window.width, window.height, null);
 		for(int i = 0; i < ge.map[0].length; i++) {
 			for(int j = 0; j < ge.map.length; j++) {
 				if((i + j) % 2 == 0) {
@@ -70,12 +72,14 @@ public class SchachComponent extends JComponent {
 				g.fillRect(offsetX + ge.map[i][j].bounds.x, offsetY + ge.map[i][j].bounds.y, Spielfeld.width, Spielfeld.width);
 				g.setColor(Color.black);
 				g.drawString(ge.map[i][j].name, offsetX + ge.map[i][j].bounds.x + 2, offsetY + ge.map[i][j].bounds.y + Spielfeld.width - 2);
-				if(ge.map[i][j].figur != null) {
-					if(ge.map[i][j].figur == ge.selectedFigur && ge.dragNDrop) {
-					} else {
+				if(ge.map[i][j].figure != null) {
+					if(!(ge.map[i][j].figure == ge.selectedFigure && ge.dragNDrop)) {
+						/*
+						 * draw every single piece except the on being moved around by the mouse on their squares
+						 */
 						for(String str : sprite_names) {
-							if(str.contains(ge.map[i][j].figur.name)) {
-								g.drawImage(sprites.get(sprite_names.indexOf(str) + 1), offsetX + ge.map[i][j].bounds.x, offsetY + ge.map[i][j].bounds.y, Spielfeld.width, Spielfeld.width, null);
+							if(str.contains(ge.map[i][j].figure.name)) {
+								g.drawImage(sprites.get(sprite_names.indexOf(str)), offsetX + ge.map[i][j].bounds.x, offsetY + ge.map[i][j].bounds.y, Spielfeld.width, Spielfeld.width, null);
 								break;
 							}
 						}
@@ -86,7 +90,7 @@ public class SchachComponent extends JComponent {
 					g.setColor(marked);
 					g.fillOval(offsetX + ge.map[i][j].bounds.x + Spielfeld.width/4, offsetY + ge.map[i][j].bounds.y + Spielfeld.width/4, Spielfeld.width/2, Spielfeld.width/2);
 				} else if(ge.map[i][j].attackable) {
-					if(ge.map[i][j].figur == null) {
+					if(ge.map[i][j].figure == null) {
 						g.setColor(attackableField);
 					} else {
 						g.setColor(attackableEnemie);
@@ -99,25 +103,28 @@ public class SchachComponent extends JComponent {
 			g.setColor(selected);
 			g.fillOval(offsetX + ge.selectedField.bounds.x + Spielfeld.width/4, offsetY + ge.selectedField.bounds.y + Spielfeld.width/4, Spielfeld.width/2, Spielfeld.width/2);
 		}
-		if(ge.selectedFigur != null && ge.dragNDrop) {
+		if(ge.selectedFigure != null && ge.dragNDrop) {
+			/*
+			 * draw the piece being moved around by the mouse at the coordinates of the mouse
+			 */
 			for(String str : sprite_names) {
-				if(str.contains(ge.selectedFigur.name)) {
-					g.drawImage(sprites.get(sprite_names.indexOf(str) + 1), ge.mouseX - Spielfeld.width/2, ge.mouseY - Spielfeld.width/2, Spielfeld.width, Spielfeld.width, null);
+				if(str.contains(ge.selectedFigure.name)) {
+					g.drawImage(sprites.get(sprite_names.indexOf(str)), ge.mouseX - Spielfeld.width/2, ge.mouseY - Spielfeld.width/2, Spielfeld.width, Spielfeld.width, null);
 				}
 			}
 		}
+		/*
+		 * drawing the clock
+		 */
 		g.setColor(Color.DARK_GRAY);
 		g.fillRect(20, window.height/2 - 200, 400, 400);
 		g.setColor(Color.gray);
 		g.fillRect(20, window.height/2 - 20, 400, 40);
 		g.setFont(time);
-		if(ge.timeLeftBlack != null && ge.timeLeftWhite != null) {
-			g.drawString((int) ge.timeLeftBlack.time/60000 + " : " + ge.timeLeftBlack.time/1000 % 60, 120, window.height/2 - 100);
-			g.drawString((int) ge.timeLeftWhite.time/60000 + " : " + ge.timeLeftWhite.time/1000 % 60, 120, window.height/2 + 130);
+		if(ge.blackTimer != null && ge.whiteTimer != null) {
+			g.drawString(ge.blackTimer.time/60000 + " : " + ge.blackTimer.time/1000 % 60, 120, window.height/2 - 100);
+			g.drawString(ge.whiteTimer.time/60000 + " : " + ge.whiteTimer.time/1000 % 60, 120, window.height/2 + 130);
 		}
 		repaint();
-	}
-	protected void finalize() {
-		System.out.println("object is garbage collected ");
 	}
 }

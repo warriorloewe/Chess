@@ -5,19 +5,19 @@ import java.util.ArrayList;
 import main.GameEnvironment;
 import main.Spielfeld;
 
-public abstract class Figur {
+public abstract class Figure {
 	
 	public int x;
 	public int y;
-	public int[][] directions = {{-1, -1}, {1, -1}, {-1, 1}, {1, 1}, {0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+	public int[][] directions = {{-1, -1}, {1, -1}, {-1, 1}, {1, 1}, {0, 1}, {0, -1}, {1, 0}, {-1, 0}}; // stores the 8 possible different direction when on a grid
 	public boolean moved = false;
-	public boolean isLongRange = false;
-	public boolean enPassant = false;
+	public boolean isLongRange = false; // true for bishop rook and queen
+	public boolean enPassant = false; // only used with pawns
 	public String color;
 	public String name;
+	public String uniqueId; // for all normal figures its the starting square, for pawns after promoting its a random number between 0 and 1s
 	public GameEnvironment ge;
-	public String uniqueId;
-	public Figur(int _x, int _y, String _color, String _name, GameEnvironment _ge, String _uniqueId, boolean _enPassant) {
+	public Figure(int _x, int _y, String _color, String _name, GameEnvironment _ge, String _uniqueId, boolean _enPassant) {
 		this.x = _x;
 		this.y = _y;
 		this.color = _color;
@@ -27,16 +27,21 @@ public abstract class Figur {
 		this.enPassant = _enPassant;
 	}
 	
-	public abstract boolean canAttack(Figur f);
-	public abstract boolean canAttackKing(Figur f);
+	public abstract boolean canAttack(Figure f);
+	public abstract boolean canAttackKing(Figure f);
 	public abstract boolean canReach(Spielfeld sf);
 	
 	public ArrayList<Spielfeld> checkDirection(int xDirection, int yDirection) {
+		/*
+		 * moves in a certain direction on the game board 
+		 * returns all possible and legal free squares
+		 * until it either hits the edge or another piece
+		 */
 		int xx = this.x + xDirection;
 		int yy = this.y + yDirection;
 		ArrayList<Spielfeld> reachableFields = new ArrayList<Spielfeld>();
 		while(!(xx < 0 || xx > 7 || yy < 0 || yy > 7)) {
-			if(this.ge.map[yy][xx].figur == null) {
+			if(this.ge.map[yy][xx].figure == null) {
 				if(this.ge.isLegal(this, this.ge.map[this.y][this.x], this.ge.map[yy][xx])) {
 					reachableFields.add(this.ge.map[yy][xx]);
 				}
@@ -49,12 +54,17 @@ public abstract class Figur {
 		return reachableFields;
 	}
 	
-	public Figur checkAttackable(int xDirection, int yDirection) {
+	public Figure checkAttackable(int xDirection, int yDirection) {
+		/*
+		 * moves in a certain direction on the game board 
+		 * until it either hits the edge or another piece
+		 * returns null if the piece is f
+		 */
 		int xx = this.x + xDirection;
 		int yy = this.y + yDirection;
 		while(!(xx < 0 || xx > 7 || yy < 0 || yy > 7)) {
-			if(this.ge.map[yy][xx].figur != null) {
-				return this.ge.map[yy][xx].figur.color == this.color || !this.ge.isLegal(this, this.ge.map[this.y][this.x], this.ge.map[yy][xx]) ? null : this.ge.map[yy][xx].figur;
+			if(this.ge.map[yy][xx].figure != null) {
+				return this.ge.map[yy][xx].figure.color == this.color || !this.ge.isLegal(this, this.ge.map[this.y][this.x], this.ge.map[yy][xx]) ? null : this.ge.map[yy][xx].figure;
 			}
 			xx += xDirection;
 			yy += yDirection;
@@ -66,8 +76,8 @@ public abstract class Figur {
 		int xx = this.x + xDirection;
 		int yy = this.y + yDirection;
 		while(!(xx < 0 || xx > 7 || yy < 0 || yy > 7)) {
-			if(this.ge.map[yy][xx].figur != null) {
-				return !(this.ge.map[yy][xx].figur.color == this.color || !this.ge.map[yy][xx].figur.name.contains("king"));
+			if(this.ge.map[yy][xx].figure != null) {
+				return !(this.ge.map[yy][xx].figure.color == this.color || !this.ge.map[yy][xx].figure.name.contains("king"));
 			}
 			xx += xDirection;
 			yy += yDirection;
@@ -80,7 +90,7 @@ public abstract class Figur {
 		ArrayList<Spielfeld> reachableFields = new ArrayList<Spielfeld>();
 		for(int i = 0; i < this.ge.map[0].length; i++) {
 			for(int j = 0; j < this.ge.map.length; j++) {
-				if(this.canReach(this.ge.map[i][j]) && this.ge.map[i][j].figur == null) {
+				if(this.canReach(this.ge.map[i][j]) && this.ge.map[i][j].figure == null) {
 					if(ge.isLegal(this, ge.map[this.y][this.x], ge.map[i][j])) {
 						reachableFields.add(this.ge.map[i][j]);
 					}
@@ -92,10 +102,10 @@ public abstract class Figur {
 		}
 		return reachableFields;
 	}
-	public ArrayList<Figur> getReachableEnemies() {
-		ArrayList<Figur> reachableEnemies = new ArrayList<Figur>();
+	public ArrayList<Figure> getReachableEnemies() {
+		ArrayList<Figure> reachableEnemies = new ArrayList<Figure>();
 		if(this.color == "white") {
-			for(Figur f : this.ge.blackFigures) {
+			for(Figure f : this.ge.blackFigures) {
 				if(canAttack(f)) {
 					if(ge.isLegal(this, ge.map[this.y][this.x], ge.map[f.y][f.x])) {
 						reachableEnemies.add(f);
@@ -103,7 +113,7 @@ public abstract class Figur {
 				}
 			}
 		} else {
-			for(Figur f : this.ge.whiteFigures) {
+			for(Figure f : this.ge.whiteFigures) {
 				if(canAttack(f)) {
 					if(ge.isLegal(this, ge.map[this.y][this.x], ge.map[f.y][f.x])) {
 						reachableEnemies.add(f);
@@ -116,24 +126,24 @@ public abstract class Figur {
 	
 	public ArrayList<Spielfeld> checkForCastle() {
 		ArrayList<Spielfeld> reachableFields = new ArrayList<Spielfeld>();
+		if(this.moved) return reachableFields;
 		if(this.color.contains("white")) {
-			for(Figur f : this.ge.blackFigures) {
+			for(Figure f : this.ge.blackFigures) {
 				if(f.canAttack(this)) {
 					return reachableFields;
 				}
 			}
 		} else {
-			for(Figur f : this.ge.whiteFigures) {
+			for(Figure f : this.ge.whiteFigures) {
 				if(f.canAttack(this)) {
 					return reachableFields;
 				}
 			}
 		}
-		if(this.moved) return reachableFields;
 		boolean longC = true;
 		boolean shortC = true;
 		if(this.color == "white") {
-			for(Figur f : this.ge.blackFigures) {
+			for(Figure f : this.ge.blackFigures) {
 				if(f.canReach(this.ge.map[this.y][this.x-1]) || f.canReach(this.ge.map[this.y][this.x-2])) {
 					longC = false;
 				}
@@ -142,7 +152,7 @@ public abstract class Figur {
 				}
 			}
 		} else {
-			for(Figur f : this.ge.whiteFigures) {
+			for(Figure f : this.ge.whiteFigures) {
 				if(f.canReach(this.ge.map[this.y][this.x-1]) || f.canReach(this.ge.map[this.y][this.x-2])) {
 					longC = false;
 				}
@@ -159,22 +169,22 @@ public abstract class Figur {
 	public boolean canCastleLong() {
 		boolean rook = false;
 		Spielfeld f = this.ge.map[this.y][this.x-4];
-		if(f.figur != null) {
-			if(f.figur.name.contains(this.color + "_rook") && !f.figur.moved) {
+		if(f.figure != null) {
+			if(f.figure.name.contains(this.color + "_rook") && !f.figure.moved) {
 				rook = true;
 			}
 		}
-		return rook && this.ge.map[this.y][this.x-1].figur == null && this.ge.map[this.y][this.x-2].figur == null && this.ge.map[this.y][this.x-3].figur == null;
+		return rook && this.ge.map[this.y][this.x-1].figure == null && this.ge.map[this.y][this.x-2].figure == null && this.ge.map[this.y][this.x-3].figure == null;
 	}
 	
 	public boolean canCastleShort() {
 		boolean rook = false;
 		Spielfeld f = this.ge.map[this.y][this.x+3];
-		if(f.figur != null) {
-			if(f.figur.name.contains(this.color + "_rook") && !f.figur.moved) {
+		if(f.figure != null) {
+			if(f.figure.name.contains(this.color + "_rook") && !f.figure.moved) {
 				rook = true;
 			}
 		}
-		return rook && this.ge.map[this.y][this.x+1].figur == null && this.ge.map[this.y][this.x+2].figur == null;
+		return rook && this.ge.map[this.y][this.x+1].figure == null && this.ge.map[this.y][this.x+2].figure == null;
 	}
 }
