@@ -444,7 +444,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 				numberOfKnights++;
 			}
 		}
-		if((whiteFigures.size() <= 2 && blackFigures.size() <= 2) || (whiteFigures.size() == 1 && blackFigures.size() == 3) || (whiteFigures.size() == 3 && blackFigures.size() == 1)) {
+		if(whiteFigures.size() + blackFigures.size() <= 4) {
 			gameOver = true;
 			winningReason = "Draw by insufficient mating material";
 		}
