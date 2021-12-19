@@ -314,6 +314,8 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 								if(!(f.canCastleShort() == ff.canCastleShort() && f.canCastleLong() == ff.canCastleLong() && f.moved == ff.moved)) {
 									sameCastleRights = false;
 								}
+							} else if(!f.moved == ff.moved){
+								sameState = false;
 							}
 						}
 						same = sameFigure && sameState && sameCastleRights;
