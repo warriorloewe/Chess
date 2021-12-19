@@ -175,7 +175,7 @@ public abstract class Figure {
 			}
 		}
 		if(canCastleLong() && longC) reachableFields.add(this.ge.map[this.y][this.x-2]);
-		else if(canCastleShort() && shortC) reachableFields.add(this.ge.map[this.y][this.x+2]);
+		if(canCastleShort() && shortC) reachableFields.add(this.ge.map[this.y][this.x+2]);
 		return reachableFields;
 	}
 	
