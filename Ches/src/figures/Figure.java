@@ -1,7 +1,6 @@
 package figures;
 
 import java.util.ArrayList;
-
 import main.GameEnvironment;
 import main.Spielfeld;
 
