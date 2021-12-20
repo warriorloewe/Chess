@@ -7,7 +7,7 @@ import main.Spielfeld;
 public class Queen extends Figure {
 
 	public Queen(int _x, int _y, String _color, GameEnvironment ge, String uniqueId, boolean enPassant) {
-		super(_x, _y, _color, _color + "_queen", ge, uniqueId, enPassant);
+		super(_x, _y, _color, _color + "_queen", ge, uniqueId, enPassant, 9);
 		this.isLongRange = true;
 	}
 

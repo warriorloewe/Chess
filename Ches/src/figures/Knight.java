@@ -6,7 +6,7 @@ import main.Spielfeld;
 public class Knight extends Figure{
 
 	public Knight(int _x, int _y, String _color, GameEnvironment ge, String uniqueId, boolean enPassant) {
-		super(_x, _y, _color, _color + "_knight", ge, uniqueId, enPassant);
+		super(_x, _y, _color, _color + "_knight", ge, uniqueId, enPassant, 3);
 	}
 	
 	@Override

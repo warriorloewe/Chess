@@ -7,7 +7,7 @@ import main.Spielfeld;
 public class Bishop extends Figure {
 
 	public Bishop(int _x, int _y, String _color, GameEnvironment ge, String uniqueId, boolean enPassant) {
-		super(_x, _y, _color, _color + "_bishop", ge, uniqueId, enPassant);
+		super(_x, _y, _color, _color + "_bishop", ge, uniqueId, enPassant, 3);
 		this.isLongRange = true;
 	}
 	

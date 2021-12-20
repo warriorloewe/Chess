@@ -425,7 +425,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		int numberOfBishops = 0;
 		int numberOfKnights = 0;
 		for(Figure f : whiteFigures) {
-			if(f.name.contains("pawn") || f.name.contains("rook") || f.name.contains("queen") || numberOfBishops >= 2 || (numberOfBishops + numberOfKnights >= 2 && numberOfKnights > 0)) {
+			if(f.points > 3 || f.name.contains("pawn") || numberOfBishops >= 2 || (numberOfBishops + numberOfKnights >= 2 && numberOfKnights > 0)) {
 				return;
 			} else if(f.name.contains("bishop")) {
 				numberOfBishops++;
@@ -436,7 +436,7 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		numberOfBishops = 0;
 		numberOfKnights = 0;
 		for(Figure f : blackFigures) {
-			if(f.name.contains("pawn") || f.name.contains("rook") || f.name.contains("queen") || numberOfBishops >= 2 || (numberOfBishops + numberOfKnights >= 2 && numberOfKnights > 0)) {
+			if(f.points > 3 || f.name.contains("pawn") || numberOfBishops >= 2 || (numberOfBishops + numberOfKnights >= 2 && numberOfKnights > 0)) {
 				return;
 			} else if(f.name.contains("bishop")) {
 				numberOfBishops++;
@@ -465,8 +465,6 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 					return;
 				}
 			}
-			gameOver = true;
-			winningReason = "Stalemate";
 		} else {
 			for(Figure f : blackFigures) {
 				if(f.canAttack(white_king)) {
@@ -478,14 +476,14 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 					return;
 				}
 			}
-			gameOver = true;
-			winningReason = "Draw by Stalemate";
 		}
+		gameOver = true;
+		winningReason = "Draw by Stalemate";
 	}
 	
 	public void checkForMate() {
 		/*
-		 * if the enemy king is in check and none of its pieces can make a legal move its checkamte
+		 * if the enemy king is in check and none of its pieces can make a legal move its checkmate
 		 */
 		if(whitesMove) {
 			for(Figure f : whiteFigures) {
@@ -516,6 +514,32 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		}
 	}
 	
+	public boolean matePossible() {
+		/*
+		 * After time ran out this function checks if mate would have been possible for the enemy
+		 * if mate is not possible its a draw eventhough they ran out of time
+		 * using the rules of chess.com : https://support.chess.com/article/268-my-opponent-ran-out-of-time-why-was-it-a-draw
+		 * k; k + b; k + n; all lead to a draw
+		 */
+		if(whitesMove) {
+			/*
+			 * if white has run out of time we want to check the black pieces
+			 */
+			for(Figure f : blackFigures) {
+				if(f.points > 3 || f.name.contains("pawn")) {
+					return true;
+				}
+			}
+		} else {
+			for(Figure f : whiteFigures) {
+				if(f.points > 3 || f.name.contains("pawn")) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	public void getInputs() {
 		try {
 			blackTimer = new Timer(-1);
@@ -540,23 +564,19 @@ public class GameEnvironment implements Runnable, MouseListener, MouseMotionList
 		whiteTimer.running = true;
 		while(true) {
 			sc.repaint();
+			if(whiteTimer.time <= 0 || blackTimer.time <= 0) {
+				gameOver = true;
+				if(matePossible()) {
+					winningReason = whitesMove ? "Black won because whites time ran out" : "White won because blacks time ran out";
+				} else {
+					winningReason = "Draw by insufficient material";
+				}
+			}
 			if(gameOver) {
 				whiteTimer.running = false;
 				blackTimer.running = false;
 				JOptionPane.showMessageDialog(null, winningReason);
 				System.exit(0);
-			}
-			if(whitesMove) {
-				if(whiteTimer.time <= 0) {
-					gameOver = true;
-					winningReason = "Black won because whites time ran out";
-				}
-			}
-			else {
-				if(blackTimer.time <= 0) {
-					gameOver = true;
-					winningReason = "White won because blacks time ran out";
-				}
 			}
 			try {
 		        Thread.sleep(20);

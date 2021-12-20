@@ -9,6 +9,7 @@ public abstract class Figure {
 	
 	public int x;
 	public int y;
+	public int points; // how much a piece is worth pawn : 1; knight : 3; bishop : 3; rook : 5; queen : 9
 	public int[][] directions = {{-1, -1}, {1, -1}, {-1, 1}, {1, 1}, {0, 1}, {0, -1}, {1, 0}, {-1, 0}}; // stores the 8 possible different direction when on a grid
 	public boolean moved = false;
 	public boolean isLongRange = false; // true for bishop rook and queen
@@ -17,7 +18,7 @@ public abstract class Figure {
 	public String name;
 	public String uniqueId; // for all normal figures its the starting square, for pawns after promoting its a random number between 0 and 1
 	public GameEnvironment ge;
-	public Figure(int _x, int _y, String _color, String _name, GameEnvironment _ge, String _uniqueId, boolean _enPassant) {
+	public Figure(int _x, int _y, String _color, String _name, GameEnvironment _ge, String _uniqueId, boolean _enPassant, int _points) {
 		this.x = _x;
 		this.y = _y;
 		this.color = _color;
@@ -25,6 +26,7 @@ public abstract class Figure {
 		this.ge = _ge;
 		this.uniqueId = _uniqueId;
 		this.enPassant = _enPassant;
+		this.points = _points;
 	}
 	
 	public abstract boolean canAttack(Figure f);
